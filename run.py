@@ -1,5 +1,6 @@
 # run.py  – per-city time-zone aware
 
+print("🟢 Bot is starting…")
 from events import compose_events_and_send
 from dotenv import load_dotenv
 load_dotenv()                                     # read .env first
