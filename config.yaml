@@ -9,3 +9,14 @@ new_york:
         - https://ny1.com/services/contentfeed.nyc%7call-boroughs%7cnews.landing.rss
         - https://gothamist.com/feed
         - https://www.thecity.nyc/feed
+
+valencia:
+  lang: es
+  tz: Europe/Madrid
+  city: Valencia
+  lat: 39.4699
+  lon: -0.3763
+  feeds:
+    - https://www.elperiodic.com/feed/rss_valencia.xml
+    - https://www.levante-emv.com/rss/section/4598
+    - https://www.elperiodico.com/es/rss/sociedad/rss.xml
