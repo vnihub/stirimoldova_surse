@@ -1,0 +1,7 @@
+python-telegram-bot[async]>=21.0
+feedparser
+openai
+langdetect
+python-dotenv
+apscheduler
+aiohttp

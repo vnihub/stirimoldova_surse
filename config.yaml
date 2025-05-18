@@ -1,0 +1,11 @@
+new_york:
+  lang: en
+  tz: America/New_York
+  city: New York
+  lat: 40.7128
+  lon: -74.0060
+  feeds:
+        - https://www.ny1.com/nyc/all-boroughs/rss
+        - https://ny1.com/services/contentfeed.nyc%7call-boroughs%7cnews.landing.rss
+        - https://gothamist.com/feed
+        - https://www.thecity.nyc/feed
