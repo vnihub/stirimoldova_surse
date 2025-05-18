@@ -20,3 +20,17 @@ valencia:
     - https://www.elperiodic.com/feed/rss_valencia.xml
     - https://www.levante-emv.com/rss/section/4598
     - https://www.elperiodico.com/es/rss/sociedad/rss.xml
+
+
+madrid:
+  lang: es
+  tz: Europe/Madrid
+  city: Madrid
+  trends: ES
+  lat: 40.4168
+  lon: -3.7038
+  feeds:
+    - https://www.20minutos.es/rss/madrid/
+    - https://www.elmundo.es/rss/madrid.xml
+    - https://www.madridactual.es/rss/ultimas-noticias-para-dvlr
+    - https://gacetinmadrid.com/feed/
