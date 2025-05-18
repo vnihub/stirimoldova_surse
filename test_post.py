@@ -1,3 +1,5 @@
+# test_post.py – manual test trigger for a specific city
+
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -5,18 +7,18 @@ import asyncio, yaml, os
 from collectors import get_latest_items, get_extras
 from composer import compose_and_send
 
-# Load config safely
+# Load config
 with open('config.yaml', 'r', encoding='utf-8') as f:
-    cfg = yaml.safe_load(f) or {}
+    cfg = yaml.safe_load(f)
 
-# Find the first valid city
-city = next((k for k, v in cfg.items() if isinstance(v, dict) and v.get("feeds")), None)
+# 👇 Change city key here
+city = "valencia"
 
-if not city or city not in cfg:
-    raise RuntimeError("No valid city found in config.yaml")
+if city not in cfg:
+    raise RuntimeError(f"City '{city}' not found in config.yaml")
 
-print("City key  :", city)
 chat_env = f"CHAT_{city.upper()}"
+print("City key  :", city)
 print("Env var   :", chat_env)
 print("Chat ID   :", os.getenv(chat_env))
 

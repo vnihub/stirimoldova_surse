@@ -1,4 +1,4 @@
-# collectors.py – robust fetch with browser-like headers + weather + °F + local sunrise/sunset
+# collectors.py – robust fetch with browser-like headers + weather + °F + local sunrise/sunset + localized description
 
 import asyncio, time, aiohttp, feedparser, os
 from datetime import datetime as dt
@@ -53,13 +53,14 @@ async def get_extras(city_key: str, cfg: dict) -> str:
     if not OWM_KEY or "lat" not in cfg or "lon" not in cfg:
         return ""
 
-    use_fahrenheit = cfg.get("tz", "").startswith("America/") and cfg.get("lang") == "en"
+    lang = cfg.get("lang", "en")
+    use_fahrenheit = cfg.get("tz", "").startswith("America/") and lang == "en"
     units = "imperial" if use_fahrenheit else "metric"
     unit_symbol = "°F" if use_fahrenheit else "°C"
 
     url = (
         "https://api.openweathermap.org/data/2.5/weather?"
-        f"lat={cfg['lat']}&lon={cfg['lon']}&units={units}&appid={OWM_KEY}"
+        f"lat={cfg['lat']}&lon={cfg['lon']}&units={units}&lang={lang}&appid={OWM_KEY}"
     )
 
     try:
@@ -72,10 +73,10 @@ async def get_extras(city_key: str, cfg: dict) -> str:
     try:
         tz = ZoneInfo(cfg.get("tz", "UTC"))
         temp = round(data["main"]["temp"])
-        descr = data["weather"][0]["description"].title()
-        emoji = "☀️" if "sun" in descr.lower() else \
-                "🌧" if "rain" in descr.lower() else \
-                "❄️" if "snow" in descr.lower() else "☁️"
+        descr = data["weather"][0]["description"].capitalize()
+        emoji = "☀️" if "sol" in descr.lower() or "sun" in descr.lower() else \
+                "🌧" if "lluvia" in descr.lower() or "rain" in descr.lower() else \
+                "❄️" if "nieve" in descr.lower() or "snow" in descr.lower() else "☁️"
         sunrise = dt.fromtimestamp(data["sys"]["sunrise"], tz).strftime("%H:%M")
         sunset  = dt.fromtimestamp(data["sys"]["sunset"], tz).strftime("%H:%M")
         return f"{emoji} {temp} {unit_symbol}, {descr} • ☀ {sunrise} • 🌇 {sunset}"

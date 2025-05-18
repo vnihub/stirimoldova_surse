@@ -1,7 +1,7 @@
-# composer.py  – safe title + underscore fix
+# composer.py – localized title + underscore fix
 
 from dotenv import load_dotenv
-load_dotenv()                                   # load .env first
+load_dotenv()  # load .env first
 
 import os
 from telegram import Bot
@@ -11,6 +11,15 @@ if not BOT_TOKEN:
     raise RuntimeError("TELEGRAM_BOT_TOKEN is missing in .env")
 
 BOT = Bot(BOT_TOKEN)
+
+# Language-specific word for "Now"
+LOCAL_HEADERS = {
+    "en": "Now",
+    "es": "Ahora",
+    "de": "Jetzt",
+    "fr": "Maintenant",
+    "ro": "Acum",
+}
 
 
 def _chat_id(city_key: str) -> str | None:
@@ -28,11 +37,15 @@ async def compose_and_send(city_key: str,
                            extras: str | None = ""):
     chat_id = _chat_id(city_key)
     if not chat_id:
-        return                                   # no channel configured
+        return
 
-    header = f"**📰 {_pretty(city_key)} Now**\n\n"
+    from config import CONFIG
+    lang = CONFIG.get(city_key, {}).get("lang", "en")
+    label = LOCAL_HEADERS.get(lang, "Now")
+
+    header = f"**📰 {_pretty(city_key)} {label}**\n\n"
     body = "\n\n".join(f"{line}" for line in news_lines) \
-       if news_lines else "_No fresh headlines yet._"
+        if news_lines else "_No fresh headlines yet._"
     text = header + body + (f"\n\n{extras}" if extras else "")
 
     await BOT.send_message(
