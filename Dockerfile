@@ -7,4 +7,4 @@ COPY . .
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt && echo "force rebuild"
 
-CMD ["python", "run.py"]
+CMD ["python", "-u", "run.py"]
