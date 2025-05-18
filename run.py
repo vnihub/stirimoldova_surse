@@ -63,3 +63,11 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+import threading
+
+def heartbeat():
+    print("✅ Bot is still running…")
+    threading.Timer(300, heartbeat).start()  # every 5 minutes
+
+heartbeat()
