@@ -12,7 +12,7 @@ with open('config.yaml', 'r', encoding='utf-8') as f:
     cfg = yaml.safe_load(f)
 
 # 👇 Change city key here
-city = "madrid"
+city = "tokyo"
 
 if city not in cfg:
     raise RuntimeError(f"City '{city}' not found in config.yaml")
