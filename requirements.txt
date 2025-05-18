@@ -5,3 +5,4 @@ langdetect
 python-dotenv
 apscheduler
 aiohttp
+PyYAML
