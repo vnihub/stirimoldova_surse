@@ -49,3 +49,16 @@ tokyo:
     - https://www.asahi.com/rss/asahi/newsheadlines.rdf
     - https://mainichi.jp/rss/etc/mainichi-flash.rss
     - https://news.livedoor.com/topics/rss/top.xml
+
+ciudad_de_mexico:
+  lang: es
+  tz: America/Mexico_City
+  city: Ciudad de Mexico
+  trends: mx
+  lat: 19.4326
+  lon: -99.1332
+  feeds:
+    - https://www.informador.mx/rss/ciudad-de-mexico.xml
+    - https://www.meganoticias.mx/cdmx/feed
+    - https://www.jornada.com.mx/rss/capital.xml
+    
