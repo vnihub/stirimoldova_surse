@@ -83,3 +83,13 @@ oslo:
   feeds:
     - https://www.nrk.no/stor-oslo/toppsaker.rss
     - https://www.aftenposten.no/rss/?kat=oslo/
+
+sao_paulo:
+  lang: pt
+  tz: America/Sao_Paulo
+  city: São Paulo
+  country: BR
+  lat: -23.5505
+  lon: -46.6333
+  feeds:
+    - https://g1.globo.com/dynamo/sao-paulo/rss2.xml
