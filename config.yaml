@@ -61,4 +61,14 @@ ciudad_de_mexico:
     - https://www.informador.mx/rss/ciudad-de-mexico.xml
     - https://www.meganoticias.mx/cdmx/feed
     - https://www.jornada.com.mx/rss/capital.xml
-    
+
+santander:
+  lang: es
+  tz: Europe/Madrid
+  city: Santander
+  country: ES
+  trends: spain
+  lat: 43.4623
+  lon: -3.8099
+  feeds:
+    - https://www.eldiarioalerta.com/rss/santander
