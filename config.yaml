@@ -72,3 +72,14 @@ santander:
   lon: -3.8099
   feeds:
     - https://www.eldiarioalerta.com/rss/santander
+
+oslo:
+  lang: no
+  tz: Europe/Oslo
+  city: Oslo
+  country: NO
+  lat: 59.9139
+  lon: 10.7522
+  feeds:
+    - https://www.nrk.no/stor-oslo/toppsaker.rss
+    - https://www.aftenposten.no/rss/?kat=oslo/
