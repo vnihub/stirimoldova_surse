@@ -1,4 +1,4 @@
-# composer.py – localized title + underscore fix
+# composer.py – localized title + underscore fix + universal CTA
 
 from dotenv import load_dotenv
 load_dotenv()  # load .env first
@@ -19,6 +19,15 @@ LOCAL_HEADERS = {
     "de": "Jetzt",
     "fr": "Maintenant",
     "ro": "Acum",
+}
+
+# Language-specific shorter subscribe CTA (optional, fallback to English)
+LOCAL_CTA = {
+    "en": "**👉🔔 Subscribe for daily updates! 🔔👈**",
+    "es": "**👉🔔 ¡Suscríbete para recibir actualizaciones diarias! 🔔👈**",
+    "de": "**👉🔔 Abonniere für tägliche Updates! 🔔👈**",
+    "fr": "**👉🔔 Abonnez-vous pour les mises à jour quotidiennes ! 🔔👈**",
+    "ro": "**👉🔔 Abonează-te pentru actualizări zilnice! 🔔👈**",
 }
 
 
@@ -42,11 +51,12 @@ async def compose_and_send(city_key: str,
     from config import CONFIG
     lang = CONFIG.get(city_key, {}).get("lang", "en")
     label = LOCAL_HEADERS.get(lang, "Now")
+    cta = LOCAL_CTA.get(lang, LOCAL_CTA["en"])
 
     header = f"**📰 {_pretty(city_key)} {label}**\n\n"
     body = "\n\n".join(f"{line}" for line in news_lines) \
         if news_lines else "_No fresh headlines yet._"
-    text = header + body + (f"\n\n{extras}" if extras else "")
+    text = header + body + (f"\n\n{extras}" if extras else "") + f"\n\n{cta}"
 
     await BOT.send_message(
         chat_id=int(chat_id),
