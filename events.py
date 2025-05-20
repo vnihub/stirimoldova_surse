@@ -13,6 +13,31 @@ TM_URL = (
     "city={city}&size=7&sort=date,asc&apikey={key}&startDateTime={start}"
 )
 
+LANG_TEXTS = {
+    "en": {
+        "title": "🎟️ Events in {city} Today",
+        "cta": "💬 Know someone in {city}? Forward this post now!"
+    },
+    "es": {
+        "title": "🎟️ Eventos en {city} Hoy",
+        "cta": "💬 ¿Conoces a alguien en {city}? ¡Comparte este post ahora!"
+    },
+    "ja": {
+        "title": "🎟️ {city} の今日のイベント",
+        "cta": "💬 {city} にいる人にこの投稿を共有してください！"
+    },
+    # add more languages if needed
+}
+
+# Keywords to filter out repetitive or continuous daily events (case-insensitive)
+FILTER_KEYWORDS = [
+    "tour experience",
+    "tour",
+    "exhibition",
+    "guided tour",
+    "daily tour",
+]
+
 def _event_url(city: str, key: str, tz: str) -> str:
     now = dt.now(ZoneInfo(tz)).replace(hour=0, minute=0, second=0, microsecond=0)
     iso = now.astimezone(ZoneInfo("UTC")).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -54,13 +79,28 @@ async def compose_events_and_send(city_key: str):
         print("⚠ No events found for today.")
         return
 
-    lines = [f"<b>🎟️ Events in {cfg['city']} Today</b>\n"]
+    lang = cfg.get("lang", "en")
+    texts = LANG_TEXTS.get(lang, LANG_TEXTS["en"])
+
+    lines = [f"<b>{texts['title'].format(city=cfg['city'])}</b>\n"]
+
     for e in events:
-        name = e["name"]
+        name_lower = e["name"].lower()
+
+        # Skip events with keywords indicating continuous or tour-like events
+        if any(keyword in name_lower for keyword in FILTER_KEYWORDS):
+            print(f"⏭ Skipping repetitive event: {e['name']}")
+            continue
+
+        # Skip non-event types (optional, but recommended)
+        if e.get("type") != "event":
+            print(f"⏭ Skipping non-event type: {e.get('type')}")
+            continue
+
         time = e["dates"]["start"].get("localTime", "")[:5]
         venue = e["_embedded"]["venues"][0]["name"]
         link = e.get("url", "")
-        
+
         cat = e.get("classifications", [{}])[0].get("segment", {}).get("name", "").lower()
         emoji = (
             "🎵" if "music" in cat else
@@ -71,10 +111,9 @@ async def compose_events_and_send(city_key: str):
             "🎉"
         )
 
-        lines.append(f"{emoji} {name} – {venue}, {time} → <a href=\"{link}\">link</a>")
+        lines.append(f"{emoji} {e['name']} – {venue}, {time} → <a href=\"{link}\">link</a>")
 
-    # ➕ Add CTA to share
-    lines.append(f"\n💬 Know someone in {cfg['city']}? Forward this post now!")
+    lines.append(f"\n{texts['cta'].format(city=cfg['city'])}")
 
     msg = "\n\n".join(lines)
 

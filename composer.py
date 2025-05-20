@@ -23,11 +23,11 @@ LOCAL_HEADERS = {
 
 # Language-specific subscribe CTA text (without markdown or html tags)
 LOCAL_CTA_TEXT = {
-    "en": "Subscribe for daily updates!",
-    "es": "¡Suscríbete para recibir actualizaciones diarias!",
-    "de": "Abonniere für tägliche Updates!",
-    "fr": "Abonnez-vous pour les mises à jour quotidiennes !",
-    "ro": "Abonează-te pentru actualizări zilnice!",
+    "en": "Subscribe for daily news!",
+    "es": "¡Suscríbete para noticias diarias!",
+    "de": "Abonniere für tägliche Neuigkeiten!",
+    "fr": "Abonnez-vous aux infos quotidiennes!",
+    "ro": "Abonează-te pentru noutăți zilnice!",
 }
 
 
@@ -65,7 +65,7 @@ async def compose_and_send(city_key: str,
     if subscribe_link:
         cta = f'**🔔 <a href="{subscribe_link}">{cta_text}</a> 👈**'
     else:
-        cta = f"**👉🔔 {cta_text} 🔔👈**"
+        cta = f"**🔔 {cta_text} 👈**"
 
     header = f"**📰 {_pretty(city_key)} {label}**\n\n"
     body = "\n\n".join(f"{line}" for line in news_lines) \
