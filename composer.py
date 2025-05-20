@@ -63,7 +63,7 @@ async def compose_and_send(city_key: str,
 
     cta_text = LOCAL_CTA_TEXT.get(lang, LOCAL_CTA_TEXT["en"])
     if subscribe_link:
-        cta = f'**👉🔔 <a href="{subscribe_link}">{cta_text}</a> 🔔👈**'
+        cta = f'**🔔 <a href="{subscribe_link}">{cta_text}</a> 👈**'
     else:
         cta = f"**👉🔔 {cta_text} 🔔👈**"
 
