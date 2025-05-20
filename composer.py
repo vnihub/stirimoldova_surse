@@ -19,6 +19,8 @@ LOCAL_HEADERS = {
     "de": "Jetzt",
     "fr": "Maintenant",
     "ro": "Acum",
+    "ja": "今",            # Japanese
+    "no": "Nå",           # Norwegian Bokmål
 }
 
 # Language-specific subscribe CTA text (without markdown or html tags)
@@ -28,12 +30,20 @@ LOCAL_CTA_TEXT = {
     "de": "Abonniere für tägliche Neuigkeiten!",
     "fr": "Abonnez-vous aux infos quotidiennes!",
     "ro": "Abonează-te pentru noutăți zilnice!",
+    "ja": "毎日のニュースを購読しましょう！",  # Japanese
+    "no": "Abonner for daglige nyheter!",      # Norwegian
 }
 
 
 def _chat_id(city_key: str) -> str | None:
-    """Return channel chat-ID env var, e.g. CHAT_NEW_YORK."""
-    return os.getenv(f"CHAT_{city_key.upper()}")
+    """Return channel chat-ID or username env var, prioritizing numeric ID."""
+    numeric = os.getenv(f"CHAT_{city_key.upper()}")
+    if numeric:
+        return numeric
+    username = os.getenv(f"CHAT_{city_key.upper()}_USERNAME")
+    if username:
+        return username if username.startswith("@") else "@" + username
+    return None
 
 
 def _pretty(city_key: str) -> str:
@@ -52,22 +62,20 @@ async def compose_and_send(city_key: str,
     lang = CONFIG.get(city_key, {}).get("lang", "en")
     label = LOCAL_HEADERS.get(lang, "Now")
 
-    # Compose clickable subscribe link using the channel username
-    # Expecting chat_id to be something like '@channelname'
+    # Compose clickable subscribe link using the channel username if available
     if chat_id.startswith("@"):
         channel_username = chat_id.lstrip("@")
         subscribe_link = f"https://t.me/{channel_username}"
     else:
-        # If chat_id is numeric (chat ID), fallback to no link
         subscribe_link = None
 
     cta_text = LOCAL_CTA_TEXT.get(lang, LOCAL_CTA_TEXT["en"])
     if subscribe_link:
-        cta = f'**🔔 <a href="{subscribe_link}">{cta_text}</a> 👈**'
+        cta = f'🔔 <a href="{subscribe_link}">{cta_text}</a> 👈'
     else:
-        cta = f"**🔔 {cta_text} 👈**"
+        cta = f"🔔 {cta_text} 👈"
 
-    header = f"**📰 {_pretty(city_key)} {label}**\n\n"
+    header = f"📰 <b>{_pretty(city_key)} {label}</b>\n\n"
     body = "\n\n".join(f"{line}" for line in news_lines) \
         if news_lines else "_No fresh headlines yet._"
     text = header + body + (f"\n\n{extras}" if extras else "") + f"\n\n{cta}"
