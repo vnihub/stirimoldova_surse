@@ -93,3 +93,21 @@ sao_paulo:
   lon: -46.6333
   feeds:
     - https://g1.globo.com/dynamo/sao-paulo/rss2.xml
+
+paris:
+  lang: fr
+  tz: Europe/Paris
+  city: Paris
+  lat: 48.8566
+  lon: 2.3522
+  feeds:
+    - https://www.bfmtv.com/rss/paris/
+
+barcelona:
+  lang: es
+  tz: Europe/Madrid
+  city: Barcelona
+  lat: 41.3851
+  lon: 2.1734
+  feeds:
+    - https://www.elperiodico.com/es/rss/barcelona/rss.xml
