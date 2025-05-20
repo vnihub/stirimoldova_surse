@@ -1,4 +1,4 @@
-# composer.py – localized title + underscore fix + universal CTA
+# composer.py – localized title + underscore fix + universal CTA with clickable subscribe link
 
 from dotenv import load_dotenv
 load_dotenv()  # load .env first
@@ -21,13 +21,13 @@ LOCAL_HEADERS = {
     "ro": "Acum",
 }
 
-# Language-specific shorter subscribe CTA (optional, fallback to English)
-LOCAL_CTA = {
-    "en": "**👉🔔 Subscribe for daily updates! 🔔👈**",
-    "es": "**👉🔔 ¡Suscríbete para recibir actualizaciones diarias! 🔔👈**",
-    "de": "**👉🔔 Abonniere für tägliche Updates! 🔔👈**",
-    "fr": "**👉🔔 Abonnez-vous pour les mises à jour quotidiennes ! 🔔👈**",
-    "ro": "**👉🔔 Abonează-te pentru actualizări zilnice! 🔔👈**",
+# Language-specific subscribe CTA text (without markdown or html tags)
+LOCAL_CTA_TEXT = {
+    "en": "Subscribe for daily updates!",
+    "es": "¡Suscríbete para recibir actualizaciones diarias!",
+    "de": "Abonniere für tägliche Updates!",
+    "fr": "Abonnez-vous pour les mises à jour quotidiennes !",
+    "ro": "Abonează-te pentru actualizări zilnice!",
 }
 
 
@@ -51,7 +51,21 @@ async def compose_and_send(city_key: str,
     from config import CONFIG
     lang = CONFIG.get(city_key, {}).get("lang", "en")
     label = LOCAL_HEADERS.get(lang, "Now")
-    cta = LOCAL_CTA.get(lang, LOCAL_CTA["en"])
+
+    # Compose clickable subscribe link using the channel username
+    # Expecting chat_id to be something like '@channelname'
+    if chat_id.startswith("@"):
+        channel_username = chat_id.lstrip("@")
+        subscribe_link = f"https://t.me/{channel_username}"
+    else:
+        # If chat_id is numeric (chat ID), fallback to no link
+        subscribe_link = None
+
+    cta_text = LOCAL_CTA_TEXT.get(lang, LOCAL_CTA_TEXT["en"])
+    if subscribe_link:
+        cta = f'**👉🔔 <a href="{subscribe_link}">{cta_text}</a> 🔔👈**'
+    else:
+        cta = f"**👉🔔 {cta_text} 🔔👈**"
 
     header = f"**📰 {_pretty(city_key)} {label}**\n\n"
     body = "\n\n".join(f"{line}" for line in news_lines) \
@@ -59,8 +73,8 @@ async def compose_and_send(city_key: str,
     text = header + body + (f"\n\n{extras}" if extras else "") + f"\n\n{cta}"
 
     await BOT.send_message(
-        chat_id=int(chat_id),
+        chat_id=int(chat_id) if chat_id.isdigit() else chat_id,
         text=text,
-        parse_mode="Markdown",
+        parse_mode="HTML",
         disable_web_page_preview=False,
     )
