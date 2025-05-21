@@ -21,6 +21,7 @@ LOCAL_HEADERS = {
     "ro": "Acum",
     "ja": "今",            # Japanese
     "no": "Nå",           # Norwegian Bokmål
+    "pt": "Agora",        # Portuguese
 }
 
 # Language-specific subscribe CTA text (without markdown or html tags)
@@ -32,6 +33,7 @@ LOCAL_CTA_TEXT = {
     "ro": "Abonează-te pentru noutăți zilnice!",
     "ja": "毎日のニュースを購読しましょう！",  # Japanese
     "no": "Abonner for daglige nyheter!",      # Norwegian
+    "pt": "Inscreva-se para notícias diárias!", # Portuguese
 }
 
 
@@ -60,6 +62,8 @@ async def compose_and_send(city_key: str,
 
     from config import CONFIG
     lang = CONFIG.get(city_key, {}).get("lang", "en")
+    lang = lang.lower().strip()  # Normalize language code
+
     label = LOCAL_HEADERS.get(lang, "Now")
 
     # Compose clickable subscribe link using the channel username if available
@@ -70,6 +74,9 @@ async def compose_and_send(city_key: str,
         subscribe_link = None
 
     cta_text = LOCAL_CTA_TEXT.get(lang, LOCAL_CTA_TEXT["en"])
+
+    print(f"DEBUG: Using lang='{lang}', CTA='{cta_text}'")  # debug
+
     if subscribe_link:
         cta = f'🔔 <a href="{subscribe_link}">{cta_text}</a> 👈'
     else:
