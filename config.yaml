@@ -82,7 +82,6 @@ oslo:
   lon: 10.7522
   feeds:
     - https://www.nrk.no/stor-oslo/toppsaker.rss
-    - https://www.aftenposten.no/rss/?kat=oslo/
 
 sao_paulo:
   lang: pt
@@ -92,7 +91,8 @@ sao_paulo:
   lat: -23.5505
   lon: -46.6333
   feeds:
-    - https://g1.globo.com/dynamo/sao-paulo/rss2.xml
+    - https://crsaopaulo.com.br/feed
+    - https://agora.folha.uol.com.br/agora/rss091.xml
 
 paris:
   lang: fr
@@ -111,3 +111,13 @@ barcelona:
   lon: 2.1734
   feeds:
     - https://www.elperiodico.com/es/rss/barcelona/rss.xml
+
+bucharest:
+  lang: ro
+  tz: Europe/Bucharest
+  city: București
+  country: RO
+  lat: 44.4268
+  lon: 26.1025
+  feeds:
+    - https://www.stiripesurse.ro/rss/stiri-din-bucuresti.xml
