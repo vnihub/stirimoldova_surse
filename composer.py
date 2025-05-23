@@ -1,4 +1,4 @@
-# composer.py – localized title + underscore fix + universal CTA with clickable subscribe link
+# composer.py – localized title + underscore fix + universal CTA with clickable subscribe link + city_local support
 
 from dotenv import load_dotenv
 load_dotenv()  # load .env first
@@ -48,9 +48,11 @@ def _chat_id(city_key: str) -> str | None:
     return None
 
 
-def _pretty(city_key: str) -> str:
-    """new_york → New York (no underscore, title-case)."""
-    return city_key.replace("_", " ").title()
+def _get_display_city(city_key: str) -> str:
+    """Get localized city name from config, fallback to prettified key."""
+    from config import CONFIG
+    cfg = CONFIG.get(city_key, {})
+    return cfg.get("city_local") or cfg.get("city") or city_key.replace("_", " ").title()
 
 
 async def compose_and_send(city_key: str,
@@ -75,14 +77,14 @@ async def compose_and_send(city_key: str,
 
     cta_text = LOCAL_CTA_TEXT.get(lang, LOCAL_CTA_TEXT["en"])
 
-    print(f"DEBUG: Using lang='{lang}', CTA='{cta_text}'")  # debug
-
     if subscribe_link:
         cta = f'🔔 <a href="{subscribe_link}">{cta_text}</a> 👈'
     else:
         cta = f"🔔 {cta_text} 👈"
 
-    header = f"📰 <b>{_pretty(city_key)} {label}</b>\n\n"
+    city_display = _get_display_city(city_key)
+
+    header = f"📰 <b>{city_display} {label}</b>\n\n"
     body = "\n\n".join(f"{line}" for line in news_lines) \
         if news_lines else "_No fresh headlines yet._"
     text = header + body + (f"\n\n{extras}" if extras else "") + f"\n\n{cta}"
