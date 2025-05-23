@@ -132,3 +132,29 @@ bucharest:
   lon: 26.1025
   feeds:
     - https://www.stiripesurse.ro/rss/stiri-din-bucuresti.xml
+
+london:
+  lang: en
+  tz: Europe/London
+  city: London
+  city_local: London
+  country: GB
+  lat: 51.5074
+  lon: -0.1278
+  feeds:
+    - www.mylondon.news/news/?service=rss
+    - http://newsrss.bbc.co.uk/rss/newsonline_uk_edition/england/london/rss.xml
+    - http://www.standard.co.uk/rss
+
+
+birmingham:
+  lang: en
+  tz: Europe/London
+  city: Birmingham
+  city_local: Birmingham
+  country: GB
+  lat: 52.4862
+  lon: -1.8904
+  feeds:
+    - https://www.birminghammail.co.uk/news/?service=rss
+    - https://www.dailymail.co.uk/news/birmingham/index.rss
