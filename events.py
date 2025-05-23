@@ -26,10 +26,28 @@ LANG_TEXTS = {
         "title": "🎟️ {city} の今日のイベント",
         "cta": "💬 {city} にいる人にこの投稿を共有してください！"
     },
-    # add more languages if needed
+    "de": {
+        "title": "🎟️ Veranstaltungen in {city} heute",
+        "cta": "💬 Kennst du jemanden in {city}? Teile diesen Beitrag jetzt!"
+    },
+    "fr": {
+        "title": "🎟️ Événements à {city} aujourd'hui",
+        "cta": "💬 Connais-tu quelqu'un à {city} ? Partage ce post maintenant !"
+    },
+    "ro": {
+        "title": "🎟️ Evenimente în {city} astăzi",
+        "cta": "💬 Cunoști pe cineva în {city}? Distribuie această postare acum!"
+    },
+    "no": {
+        "title": "🎟️ Arrangementer i {city} i dag",
+        "cta": "💬 Kjenner du noen i {city}? Del dette innlegget nå!"
+    },
+    "pt": {
+        "title": "🎟️ Eventos em {city} hoje",
+        "cta": "💬 Conhece alguém em {city}? Compartilhe esta publicação agora!"
+    },
 }
 
-# Keywords to filter out repetitive or continuous daily events (case-insensitive)
 FILTER_KEYWORDS = [
     "tour experience",
     "tour",
@@ -112,6 +130,10 @@ async def compose_events_and_send(city_key: str):
         )
 
         lines.append(f"{emoji} {e['name']} – {venue}, {time} → <a href=\"{link}\">link</a>")
+
+    if len(lines) == 1:
+        print("⚠ No valid events after filtering, skipping post.")
+        return  # no events to post, skip sending
 
     lines.append(f"\n{texts['cta'].format(city=cfg['city'])}")
 
