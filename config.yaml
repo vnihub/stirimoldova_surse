@@ -2,19 +2,21 @@ new_york:
   lang: en
   tz: America/New_York
   city: New York
+  city_local: New York
   trends: US/NY
   lat: 40.7128
   lon: -74.0060
   feeds:
-        - https://www.ny1.com/nyc/all-boroughs/rss
-        - https://ny1.com/services/contentfeed.nyc%7call-boroughs%7cnews.landing.rss
-        - https://gothamist.com/feed
-        - https://www.thecity.nyc/feed
+    - https://www.ny1.com/nyc/all-boroughs/rss
+    - https://ny1.com/services/contentfeed.nyc%7call-boroughs%7cnews.landing.rss
+    - https://gothamist.com/feed
+    - https://www.thecity.nyc/feed
 
 valencia:
   lang: es
   tz: Europe/Madrid
   city: Valencia
+  city_local: Valencia
   trends: ES
   lat: 39.4699
   lon: -0.3763
@@ -23,11 +25,11 @@ valencia:
     - https://www.levante-emv.com/rss/section/4598
     - https://www.lasprovincias.es/rss/2.0/?section=valencia-ciudad
 
-
 madrid:
   lang: es
   tz: Europe/Madrid
   city: Madrid
+  city_local: Madrid
   trends: ES
   lat: 40.4168
   lon: -3.7038
@@ -41,6 +43,7 @@ tokyo:
   lang: ja
   tz: Asia/Tokyo
   city: 東京
+  city_local: 東京
   trends: JP
   lat: 35.6895
   lon: 139.6917
@@ -54,6 +57,7 @@ ciudad_de_mexico:
   lang: es
   tz: America/Mexico_City
   city: Ciudad de Mexico
+  city_local: Ciudad de México
   trends: mx
   lat: 19.4326
   lon: -99.1332
@@ -66,17 +70,20 @@ santander:
   lang: es
   tz: Europe/Madrid
   city: Santander
+  city_local: Santander
   country: ES
   trends: spain
   lat: 43.4623
   lon: -3.8099
   feeds:
-    - https://www.eldiarioalerta.com/rss/santander
+    - https://www.ifomo.es/rss/santander/ 
+    - https://www.ifomo.es/rss/video/santander/
 
 oslo:
   lang: no
   tz: Europe/Oslo
   city: Oslo
+  city_local: Oslo
   country: NO
   lat: 59.9139
   lon: 10.7522
@@ -87,6 +94,7 @@ sao_paulo:
   lang: pt
   tz: America/Sao_Paulo
   city: São Paulo
+  city_local: São Paulo
   country: BR
   lat: -23.5505
   lon: -46.6333
@@ -98,6 +106,7 @@ paris:
   lang: fr
   tz: Europe/Paris
   city: Paris
+  city_local: Paris
   lat: 48.8566
   lon: 2.3522
   feeds:
@@ -107,6 +116,7 @@ barcelona:
   lang: es
   tz: Europe/Madrid
   city: Barcelona
+  city_local: Barcelona
   lat: 41.3851
   lon: 2.1734
   feeds:
@@ -116,6 +126,7 @@ bucharest:
   lang: ro
   tz: Europe/Bucharest
   city: București
+  city_local: București
   country: RO
   lat: 44.4268
   lon: 26.1025

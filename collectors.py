@@ -1,4 +1,4 @@
-# collectors.py – robust fetch with browser-like headers + weather + °F + local sunrise/sunset + localized description
+# collectors.py – robust fetch with browser-like headers + weather + °F + local sunrise/sunset + localized description + improved deduplication
 
 import asyncio, time, aiohttp, feedparser, os
 from datetime import datetime as dt
@@ -26,25 +26,36 @@ async def fetch_feed(url: str) -> list[feedparser.FeedParserDict]:
 
 
 async def get_latest_items(city_key: str, cfg: dict, limit: int = 3) -> list[str]:
+    # Fetch all feeds concurrently
     tasks = [fetch_feed(u) for u in cfg.get("feeds", [])]
-    entries: list = []
-    for t in asyncio.as_completed(tasks):
-        entries.extend(await t)
+    all_entries = []
+    for task in asyncio.as_completed(tasks):
+        entries = await task
+        all_entries.extend(entries)
 
-    entries.sort(key=lambda e: e.get("published_parsed", time.gmtime(0)), reverse=True)
+    # Sort all entries by published date descending
+    all_entries.sort(key=lambda e: e.get("published_parsed", time.gmtime(0)), reverse=True)
 
-    fresh: list = []
-    for e in entries:
-        uid = e.get("id") or e.get("link")
-        if uid and uid not in SEEN.get(city_key, set()):
-            fresh.append(e)
-            SEEN.setdefault(city_key, set()).add(uid)
-        if len(fresh) == limit:
+    # Deduplicate globally by city_key across all feeds
+    fresh = []
+    seen_ids = SEEN.setdefault(city_key, set())
+
+    for entry in all_entries:
+        uid = entry.get("id") or entry.get("link")
+        if not uid:
+            continue
+        if uid in seen_ids:
+            continue
+        fresh.append(entry)
+        seen_ids.add(uid)
+        if len(fresh) >= limit:
             break
 
-    summaries: list[str] = []
-    for e in fresh:
-        summaries.append(await summarise_article(e, cfg["lang"]))
+    # Summarize fresh unique items only
+    summaries = []
+    for entry in fresh:
+        summaries.append(await summarise_article(entry, cfg["lang"]))
+
     return summaries
 
 
