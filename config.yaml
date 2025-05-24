@@ -76,6 +76,8 @@ santander:
   lat: 43.4623
   lon: -3.8099
   feeds:
+    - http://www.20minutos.es/rss/santander/
+    - http://portal.ayto-santander.es/portal/page/portal/inet_santander/general/rss/rss_noticias
     - https://www.ifomo.es/rss/santander/ 
     - https://www.ifomo.es/rss/video/santander/
 
@@ -219,3 +221,43 @@ naples:
     - http://data.kataweb.it/rss/quotidianilocali_articoli_subcategories/repnapoli/cronaca?cats=quotidianilocali/repnapoli/cronaca/napoli,quotidianilocali/repnapoli/cronaca/provincia,quotidianilocali/repnapoli/cronaca/regione,quotidianilocali/repnapoli/cronaca/economia,quotidianilocali/repnapoli/cronaca/opinioni,quotidianilocali/repnapoli/cronaca/politica,quotidianilocali/repnapoli/cronaca/rubriche,quotidianilocali/repnapoli/cronaca/salute,quotidianilocali/repnapoli/cronaca/scuola,quotidianilocali/repnapoli/cronaca/societa,quotidianilocali/repnapoli/cronaca/tecnologia,quotidianilocali/repnapoli/cronaca/universita
     - http://www.calcionapoli24.it/feed/
     - http://www.napolitoday.it/rss
+
+berlin:
+  lang: de
+  tz: Europe/Berlin
+  city: Berlin
+  city_local: Berlin
+  country: DE
+  lat: 52.52
+  lon: 13.405
+  feeds:
+    - http://www.bild.de/rss-feeds/rss-16725492,feed=berlin.bild.html
+    - http://www.berlin.de/polizei/presse-fahndung/_rss_presse.xml
+    - http://www.welt.de/regionales/berlin/?service=Rss
+    - https://www.berliner-kurier.de/feed/index.rss
+
+hamburg:
+  lang: de
+  tz: Europe/Berlin
+  city: Hamburg
+  city_local: Hamburg
+  country: DE
+  lat: 53.5511
+  lon: 9.9937
+  feeds:
+    - http://www.ndr.de/nachrichten/hamburg/index-rss.xml
+    - http://www.bild.de/rss-feeds/rss-16725492,feed=hamburg.bild.html
+
+munchen:
+  lang: de
+  tz: Europe/Berlin
+  city: München
+  city_local: München
+  country: DE
+  lat: 48.1351
+  lon: 11.5820
+  feeds:
+    - https://rss.sueddeutsche.de/rss/Muenchen
+    - https://www.muenchen.de/rss.xml
+    - https://www.abendzeitung-muenchen.de/storage/rss/rss/muenchen-news-abendzeitung.xml
+    - http://www.bild.de/rss-feeds/rss-16725492,feed=muenchen.bild.html
