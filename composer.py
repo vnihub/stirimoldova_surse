@@ -24,6 +24,7 @@ LOCAL_HEADERS = {
     "pt": "Agora",        # Portuguese
     "tr": "Şimdi",        # Turkish
     "bn": "এখন",          # Bengali
+    "it": "Ora",          # Italian
 }
 
 LOCAL_CTA_TEXT = {
@@ -37,6 +38,7 @@ LOCAL_CTA_TEXT = {
     "pt": "Inscreva-se para notícias diárias!", # Portuguese
     "tr": "Günlük haberler için abone olun!",
     "bn": "দৈনিক খবরের জন্য সাবস্ক্রাইব করুন!",
+    "it": "Iscriviti per le notizie quotidiane!",
 }
 
 

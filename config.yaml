@@ -181,3 +181,41 @@ dhaka:
   lon: 90.4125
   feeds:
     - https://www.amarbanglabd.com/feeds
+
+rome:
+  lang: it
+  tz: Europe/Rome
+  city: Roma
+  city_local: Roma
+  country: IT
+  lat: 41.9028
+  lon: 12.4964
+  feeds:
+    - https://www.ilmessaggero.it/rss/roma.xml
+  
+milan:
+  lang: it
+  tz: Europe/Rome
+  city: Milano
+  city_local: Milano
+  country: IT
+  lat: 45.4642
+  lon: 9.1900
+  feeds:
+    - http://www.cronacamilano.it/feed
+    - http://data.kataweb.it/rss/quotidianilocali_articoli_subcategories/repmilano/attualita?cats=quotidianilocali/repmilano/attualita/politica,quotidianilocali/repmilano/attualita/economia,quotidianilocali/repmilano/attualita/cultura,quotidianilocali/repmilano/attualita/societa,quotidianilocali/repmilano/attualita/salute,quotidianilocali/repmilano/attualita/tecnologia,quotidianilocali/repmilano/attualita/opinioni,quotidianilocali/repmilano/attualita/rubriche/
+    - http://www.milanopost.info/feed/
+
+naples:
+  lang: it
+  tz: Europe/Rome
+  city: Napoli
+  city_local: Napoli
+  country: IT
+  lat: 40.8518
+  lon: 14.2681
+  feeds:
+    - http://www.ilmattino.it/rss/napoli.xml
+    - http://data.kataweb.it/rss/quotidianilocali_articoli_subcategories/repnapoli/cronaca?cats=quotidianilocali/repnapoli/cronaca/napoli,quotidianilocali/repnapoli/cronaca/provincia,quotidianilocali/repnapoli/cronaca/regione,quotidianilocali/repnapoli/cronaca/economia,quotidianilocali/repnapoli/cronaca/opinioni,quotidianilocali/repnapoli/cronaca/politica,quotidianilocali/repnapoli/cronaca/rubriche,quotidianilocali/repnapoli/cronaca/salute,quotidianilocali/repnapoli/cronaca/scuola,quotidianilocali/repnapoli/cronaca/societa,quotidianilocali/repnapoli/cronaca/tecnologia,quotidianilocali/repnapoli/cronaca/universita
+    - http://www.calcionapoli24.it/feed/
+    - http://www.napolitoday.it/rss
