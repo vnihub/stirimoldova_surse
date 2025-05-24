@@ -158,3 +158,26 @@ birmingham:
   feeds:
     - https://www.birminghammail.co.uk/news/?service=rss
     - https://www.dailymail.co.uk/news/birmingham/index.rss
+
+istanbul:
+  lang: tr
+  tz: Europe/Istanbul
+  city: İstanbul
+  city_local: İstanbul
+  country: TR
+  lat: 41.0082
+  lon: 28.9784
+  feeds:
+    - https://www.dailysabah.com/rss/istanbul.xml
+    - https://www.hurriyetdailynews.com/rss/istanbul
+  
+dhaka:
+  lang: bn
+  tz: Asia/Dhaka
+  city: Dhaka
+  city_local: ঢাকা
+  country: BD
+  lat: 23.8103
+  lon: 90.4125
+  feeds:
+    - https://www.amarbanglabd.com/feeds

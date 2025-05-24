@@ -22,9 +22,10 @@ LOCAL_HEADERS = {
     "ja": "今",            # Japanese
     "no": "Nå",           # Norwegian Bokmål
     "pt": "Agora",        # Portuguese
+    "tr": "Şimdi",        # Turkish
+    "bn": "এখন",          # Bengali
 }
 
-# Language-specific subscribe CTA text (without markdown or html tags)
 LOCAL_CTA_TEXT = {
     "en": "Subscribe for daily news!",
     "es": "¡Suscríbete para noticias diarias!",
@@ -34,6 +35,8 @@ LOCAL_CTA_TEXT = {
     "ja": "毎日のニュースを購読しましょう！",  # Japanese
     "no": "Abonner for daglige nyheter!",      # Norwegian
     "pt": "Inscreva-se para notícias diárias!", # Portuguese
+    "tr": "Günlük haberler için abone olun!",
+    "bn": "দৈনিক খবরের জন্য সাবস্ক্রাইব করুন!",
 }
 
 

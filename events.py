@@ -54,6 +54,7 @@ FILTER_KEYWORDS = [
     "exhibition",
     "guided tour",
     "daily tour",
+    "demo",
 ]
 
 def _event_url(city: str, key: str, tz: str) -> str:

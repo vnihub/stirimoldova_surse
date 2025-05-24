@@ -6,10 +6,11 @@ from utils import tiny
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-
 async def summarise_article(entry, lang: str) -> str:
     title = entry.get("title", "")
     link  = entry.get("link", "")
+
+    lang = lang.lower()
 
     prompt = (
         f"Summarise the headline '{title}' in ≤15 words, keep language {lang}, "
