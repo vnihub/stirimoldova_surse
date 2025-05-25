@@ -144,7 +144,7 @@ london:
   lat: 51.5074
   lon: -0.1278
   feeds:
-    - www.mylondon.news/news/?service=rss
+    - http://www.mylondon.news/news/?service=rss
     - http://newsrss.bbc.co.uk/rss/newsonline_uk_edition/england/london/rss.xml
     - http://www.standard.co.uk/rss
 
