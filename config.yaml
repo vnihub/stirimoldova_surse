@@ -92,7 +92,6 @@ oslo:
   feeds:
     - https://www.nrk.no/stor-oslo/toppsaker.rss
     - http://www.aftenposten.no/rss/?kat=osloby
-    - http://www.nrk.no/ostlandssendingen/toppsaker.rss
 
 sao_paulo:
   lang: "pt"
