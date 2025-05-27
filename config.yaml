@@ -1,5 +1,5 @@
 new_york:
-  lang: en
+  lang: "en"
   tz: America/New_York
   city: New York
   city_local: New York
@@ -13,7 +13,7 @@ new_york:
     - https://www.thecity.nyc/feed
 
 valencia:
-  lang: es
+  lang: "es"
   tz: Europe/Madrid
   city: Valencia
   city_local: Valencia
@@ -26,7 +26,7 @@ valencia:
     - https://www.lasprovincias.es/rss/2.0/?section=valencia-ciudad
 
 madrid:
-  lang: es
+  lang: "es"
   tz: Europe/Madrid
   city: Madrid
   city_local: Madrid
@@ -40,7 +40,7 @@ madrid:
     - https://gacetinmadrid.com/feed/
 
 tokyo:
-  lang: ja
+  lang: "ja"
   tz: Asia/Tokyo
   city: 東京
   city_local: 東京
@@ -54,7 +54,7 @@ tokyo:
     - https://news.livedoor.com/topics/rss/top.xml
 
 ciudad_de_mexico:
-  lang: es
+  lang: "es"
   tz: America/Mexico_City
   city: Ciudad de Mexico
   city_local: Ciudad de México
@@ -67,7 +67,7 @@ ciudad_de_mexico:
     - https://www.jornada.com.mx/rss/capital.xml
 
 santander:
-  lang: es
+  lang: "es"
   tz: Europe/Madrid
   city: Santander
   city_local: Santander
@@ -76,13 +76,13 @@ santander:
   lat: 43.4623
   lon: -3.8099
   feeds:
-    - http://www.20minutos.es/rss/santander/
-    - http://portal.ayto-santander.es/portal/page/portal/inet_santander/general/rss/rss_noticias
+    - www.20minutos.es/rss/cantabria/
+    - http://www.santander.es/rss/noticia/rss.xml
     - https://www.ifomo.es/rss/santander/ 
     - https://www.ifomo.es/rss/video/santander/
 
 oslo:
-  lang: no
+  lang: "no"
   tz: Europe/Oslo
   city: Oslo
   city_local: Oslo
@@ -91,9 +91,11 @@ oslo:
   lon: 10.7522
   feeds:
     - https://www.nrk.no/stor-oslo/toppsaker.rss
+    - http://www.aftenposten.no/rss/?kat=osloby
+    - http://www.nrk.no/ostlandssendingen/toppsaker.rss
 
 sao_paulo:
-  lang: pt
+  lang: "pt"
   tz: America/Sao_Paulo
   city: São Paulo
   city_local: São Paulo
@@ -105,7 +107,7 @@ sao_paulo:
     - https://agora.folha.uol.com.br/agora/rss091.xml
 
 paris:
-  lang: fr
+  lang: "fr"
   tz: Europe/Paris
   city: Paris
   city_local: Paris
@@ -115,7 +117,7 @@ paris:
     - https://www.bfmtv.com/rss/paris/
 
 barcelona:
-  lang: es
+  lang: "es"
   tz: Europe/Madrid
   city: Barcelona
   city_local: Barcelona
@@ -125,7 +127,7 @@ barcelona:
     - https://www.elperiodico.com/es/rss/barcelona/rss.xml
 
 bucharest:
-  lang: ro
+  lang: "ro"
   tz: Europe/Bucharest
   city: București
   city_local: București
@@ -136,7 +138,7 @@ bucharest:
     - https://www.stiripesurse.ro/rss/stiri-din-bucuresti.xml
 
 london:
-  lang: en
+  lang: "en"
   tz: Europe/London
   city: London
   city_local: London
@@ -150,7 +152,7 @@ london:
 
 
 birmingham:
-  lang: en
+  lang: "en"
   tz: Europe/London
   city: Birmingham
   city_local: Birmingham
@@ -162,7 +164,7 @@ birmingham:
     - https://www.dailymail.co.uk/news/birmingham/index.rss
 
 istanbul:
-  lang: tr
+  lang: "tr"
   tz: Europe/Istanbul
   city: İstanbul
   city_local: İstanbul
@@ -174,7 +176,7 @@ istanbul:
     - https://www.hurriyetdailynews.com/rss/istanbul
   
 dhaka:
-  lang: bn
+  lang: "bn"
   tz: Asia/Dhaka
   city: Dhaka
   city_local: ঢাকা
@@ -185,7 +187,7 @@ dhaka:
     - https://www.amarbanglabd.com/feeds
 
 rome:
-  lang: it
+  lang: "it"
   tz: Europe/Rome
   city: Roma
   city_local: Roma
@@ -196,7 +198,7 @@ rome:
     - https://www.ilmessaggero.it/rss/roma.xml
   
 milan:
-  lang: it
+  lang: "it"
   tz: Europe/Rome
   city: Milano
   city_local: Milano
@@ -209,7 +211,7 @@ milan:
     - http://www.milanopost.info/feed/
 
 naples:
-  lang: it
+  lang: "it"
   tz: Europe/Rome
   city: Napoli
   city_local: Napoli
@@ -223,7 +225,7 @@ naples:
     - http://www.napolitoday.it/rss
 
 berlin:
-  lang: de
+  lang: "de"
   tz: Europe/Berlin
   city: Berlin
   city_local: Berlin
@@ -237,7 +239,7 @@ berlin:
     - https://www.berliner-kurier.de/feed/index.rss
 
 hamburg:
-  lang: de
+  lang: "de"
   tz: Europe/Berlin
   city: Hamburg
   city_local: Hamburg
@@ -249,7 +251,7 @@ hamburg:
     - http://www.bild.de/rss-feeds/rss-16725492,feed=hamburg.bild.html
 
 munchen:
-  lang: de
+  lang: "de"
   tz: Europe/Berlin
   city: München
   city_local: München
