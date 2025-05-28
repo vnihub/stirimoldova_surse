@@ -2,9 +2,10 @@
 # per-day, summarise, plus weather helper.
 
 import os, re, time, asyncio, aiohttp, feedparser
-from datetime import datetime as dt, date, timedelta               # ← added timedelta
+from datetime import datetime as dt, date, timedelta
 from zoneinfo import ZoneInfo
 from summariser import summarise_article
+from openai import AsyncOpenAI
 
 # ───────────────────────────── constants ─────────────────────────────
 HEADERS = {
@@ -16,15 +17,16 @@ HEADERS = {
 }
 
 OWM_KEY = os.getenv("WEATHER_KEY")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+client = AsyncOpenAI(api_key=OPENAI_API_KEY)
 
 # ─────────────────────────── in-memory caches ────────────────────────
 SEEN_IDS:     dict[str, set[str]] = {}   # city → {entry-uid}
-TOPICS_SEEN:  dict[str, set[str]] = {}   # city → {topic keys}
+TOPICS_SEEN:  dict[str, set[str]] = {}   # city → {topic hashes}
 CACHE_DAY:    dict[str, date]      = {}  # city → date when caches were reset
 
 # ──────────────────────────── helpers ───────────────────────────────
 def _reset_daily_caches(city: str, today: date) -> None:
-    """Flush per-city caches if the calendar day has changed."""
     if CACHE_DAY.get(city) != today:
         SEEN_IDS.pop(city,  None)
         TOPICS_SEEN.pop(city, None)
@@ -32,10 +34,6 @@ def _reset_daily_caches(city: str, today: date) -> None:
 
 
 def _is_recent(entry, tz: ZoneInfo, hours: int = 24) -> bool:
-    """
-    True ⇢ entry published/updated within the last `hours` in the city TZ.
-    Undated items are skipped (too risky).
-    """
     tm = entry.get("published_parsed") or entry.get("updated_parsed")
     if not tm:
         return False
@@ -43,13 +41,18 @@ def _is_recent(entry, tz: ZoneInfo, hours: int = 24) -> bool:
     return (dt.now(tz) - entry_dt) <= timedelta(hours=hours)
 
 
-_topic_re = re.compile(r"[^\w\s]", re.UNICODE)  # strip punctuation
-
-def _topic_key(entry) -> str:
-    """Topic fingerprint: first 8 lowercase words of the headline."""
+async def _topic_key(entry) -> str:
     title = entry.get("title", "")
-    words = _topic_re.sub("", title.lower()).split()[:8]
-    return " ".join(words)
+    summary = entry.get("summary", "")
+    content = f"{title}\n{summary}"
+    try:
+        resp = await client.embeddings.create(
+            input=content[:1000],
+            model="text-embedding-3-small"
+        )
+        return str(hash(tuple(resp.data[0].embedding[:64])))
+    except Exception:
+        return title.lower()[:64]  # fallback
 
 
 async def fetch_feed(url: str) -> list[feedparser.FeedParserDict]:
@@ -61,29 +64,27 @@ async def fetch_feed(url: str) -> list[feedparser.FeedParserDict]:
 
 # ─────────────────────── core: latest items per city ─────────────────
 async def get_latest_items(city_key: str, cfg: dict, limit: int = 5) -> list[str]:
-    """Return ≤ `limit` summaries of recent (≤24 h) unique news items."""
     tz    = ZoneInfo(cfg.get("tz", "UTC"))
     today = dt.now(tz).date()
     _reset_daily_caches(city_key, today)
 
-    # 1️⃣ fetch feeds & keep only recent items
     tasks = [fetch_feed(u) for u in cfg.get("feeds", [])]
     all_entries: list = []
     for coro in asyncio.as_completed(tasks):
         all_entries.extend(e for e in await coro if _is_recent(e, tz))
 
-    # 2️⃣ newest → oldest; tolerate missing dates (already filtered)
     all_entries.sort(
         key=lambda e: e.get("published_parsed") or time.gmtime(0),
         reverse=True,
     )
 
-    # 3️⃣ deduplicate by UID *and* by topic
-    fresh, ids_seen, topics_seen = [], SEEN_IDS.setdefault(city_key, set()), TOPICS_SEEN.setdefault(city_key, set())
+    fresh = []
+    ids_seen = SEEN_IDS.setdefault(city_key, set())
+    topics_seen = TOPICS_SEEN.setdefault(city_key, set())
 
     for e in all_entries:
-        uid   = e.get("id") or e.get("link")
-        topic = _topic_key(e)
+        uid = e.get("id") or e.get("link")
+        topic = await _topic_key(e)
         if (uid and uid in ids_seen) or topic in topics_seen:
             continue
         fresh.append(e)
@@ -93,19 +94,17 @@ async def get_latest_items(city_key: str, cfg: dict, limit: int = 5) -> list[str
         if len(fresh) >= limit:
             break
 
-    # 4️⃣ summarise
     lang = str(cfg.get("lang", "en"))
     return [await summarise_article(e, lang) for e in fresh]
 
 
 # ───────────────────────── weather extra line ───────────────────────
 async def get_extras(city_key: str, cfg: dict) -> str:
-    """Return weather line with emoji + sunrise/sunset, localised."""
     if not (OWM_KEY and cfg.get("lat") and cfg.get("lon")):
         return ""
 
-    lang   = cfg.get("lang", "en")
-    use_f  = cfg.get("tz", "").startswith("America/") and lang == "en"
+    lang = cfg.get("lang", "en")
+    use_f = cfg.get("tz", "").startswith("America/") and lang == "en"
     units, sym = ("imperial", "°F") if use_f else ("metric", "°C")
 
     url = (
@@ -122,19 +121,19 @@ async def get_extras(city_key: str, cfg: dict) -> str:
         return ""
 
     try:
-        tz      = ZoneInfo(cfg.get("tz", "UTC"))
-        temp    = round(data["main"]["temp"])
-        descr   = data["weather"][0]["description"].capitalize()
-        low     = descr.lower()
+        tz = ZoneInfo(cfg.get("tz", "UTC"))
+        temp = round(data["main"]["temp"])
+        descr = data["weather"][0]["description"].capitalize()
+        low = descr.lower()
 
-        if any(k in low for k in ("sol", "sun", "sonne", "soleil")):            emoji = "☀️"
-        elif any(k in low for k in ("lluvia", "rain", "regen", "pluie")):       emoji = "🌧"
-        elif any(k in low for k in ("nieve", "snow", "schnee", "neige")):       emoji = "❄️"
-        else:                                                                   emoji = "☁️"
+        if any(k in low for k in ("sol", "sun", "sonne", "soleil")): emoji = "☀️"
+        elif any(k in low for k in ("lluvia", "rain", "regen", "pluie")): emoji = "🌧"
+        elif any(k in low for k in ("nieve", "snow", "schnee", "neige")): emoji = "❄️"
+        else: emoji = "☁️"
 
         sunrise = dt.fromtimestamp(data["sys"]["sunrise"], tz).strftime("%H:%M")
-        sunset  = dt.fromtimestamp(data["sys"]["sunset"],  tz).strftime("%H:%M")
+        sunset = dt.fromtimestamp(data["sys"]["sunset"], tz).strftime("%H:%M")
 
-        return f"{emoji} {temp} {sym}, {descr} • ☀ {sunrise} • 🌇 {sunset}"
+        return f"------\n ☀ {sunrise} • 🌇 {sunset}\n{emoji} {temp} {sym}, {descr}\n-------"
     except Exception:
         return ""

@@ -18,8 +18,7 @@ async def fetch_article_text(url: str) -> str:
         summary_html = doc.summary()
         soup = BeautifulSoup(summary_html, "html.parser")
         text = soup.get_text(separator="\n").strip()
-        # Limit length to avoid huge prompts (optional)
-        return text[:3000]  # first 3000 chars or less
+        return text[:3000]
     except Exception:
         return ""
 
@@ -28,10 +27,8 @@ async def summarise_article(entry, lang: str) -> str:
     link = entry.get("link", "")
 
     lang = lang.lower()
-
     article_text = await fetch_article_text(link)
     if not article_text:
-        # fallback to headline only
         prompt_text = f"Summarise the headline '{title}' in ≤15 words, keep language {lang}, add one emoji prefix."
     else:
         prompt_text = (
@@ -55,3 +52,16 @@ async def summarise_article(entry, lang: str) -> str:
         short_link = link
 
     return f"{summary} → {short_link}"
+
+async def get_embedding(text: str) -> list[float]:
+    """Return the OpenAI embedding vector for a given string."""
+    try:
+        resp = await asyncio.to_thread(
+            lambda: client.embeddings.create(
+                model="text-embedding-3-small",
+                input=text,
+            )
+        )
+        return resp.data[0].embedding
+    except Exception:
+        return []
