@@ -76,7 +76,7 @@ santander:
   lat: 43.4623
   lon: -3.8099
   feeds:
-    - www.20minutos.es/rss/cantabria/
+    - https://www.20minutos.es/rss/cantabria/
     - http://www.santander.es/rss/noticia/rss.xml
     - https://www.ifomo.es/rss/santander/ 
     - https://www.ifomo.es/rss/video/santander/
