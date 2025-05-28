@@ -10,7 +10,7 @@ if not BOT_TOKEN:
     raise RuntimeError("TELEGRAM_BOT_TOKEN is missing in .env")
 BOT = Bot(BOT_TOKEN)
 
-# -------------------------------- i18n --------------------------------
+# ---------------------------------------------------------------- i18n
 LOCAL_HEADERS = {
     "en": "Now", "es": "Ahora", "de": "Jetzt", "fr": "Maintenant",
     "ro": "Acum", "ja": "今", "no": "Nå", "pt": "Agora",
@@ -30,7 +30,7 @@ LOCAL_CTA_TEXT = {
     "it": "Iscriviti per le notizie quotidiane!",
 }
 
-# ---------------------------- helpers ---------------------------------
+# ------------------------------------------------ helpers
 def _chat_id(city_key: str) -> str | None:
     numeric = os.getenv(f"CHAT_{city_key.upper()}")
     if numeric:
@@ -45,13 +45,18 @@ def _display_city(city_key: str) -> str:
     cfg = CONFIG.get(city_key, {})
     return cfg.get("city_local") or cfg.get("city") or city_key.replace("_", " ").title()
 
-# ---------------------------- main API --------------------------------
+# ------------------------------------------------ main API
 async def compose_and_send(city_key: str,
                            news_lines: list[str],
                            extras: str | None = ""):
+    # 0️⃣  skip sending if there are no fresh headlines
+    if not news_lines:
+        print(f"ℹ️  No fresh headlines for {city_key} – post skipped.")
+        return
+
     chat = _chat_id(city_key)
     if not chat:
-        return                     # no channel
+        return  # channel not configured
 
     from config import CONFIG
     lang  = str(CONFIG.get(city_key, {}).get("lang", "en")).lower()
@@ -65,12 +70,12 @@ async def compose_and_send(city_key: str,
         cta = f'🔔 {LOCAL_CTA_TEXT.get(lang, LOCAL_CTA_TEXT["en"])} 👈'
 
     header = f'📰 <b>{_display_city(city_key)} {label}</b>\n\n'
-    body   = "\n\n".join(news_lines) if news_lines else "_No fresh headlines yet._"
+    body   = "\n\n".join(news_lines)               # ← no placeholder
     text   = header + body + (f"\n\n{extras}" if extras else "") + f"\n\n{cta}"
 
     await BOT.send_message(
-        chat_id = int(chat) if chat.lstrip("-").isdigit() else chat,
-        text    = text,
-        parse_mode = "HTML",
-        disable_web_page_preview = False,
+        chat_id=int(chat) if chat.lstrip("-").isdigit() else chat,
+        text=text,
+        parse_mode="HTML",
+        disable_web_page_preview=False,
     )
