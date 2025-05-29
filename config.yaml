@@ -262,3 +262,18 @@ munchen:
     - https://www.muenchen.de/rss.xml
     - https://www.abendzeitung-muenchen.de/storage/rss/rss/muenchen-news-abendzeitung.xml
     - http://www.bild.de/rss-feeds/rss-16725492,feed=muenchen.bild.html
+
+chisinau:
+  lang: "ro"
+  tz: Europe/Chisinau
+  city: Chisinau
+  city_local: Moldova
+  country: MD
+  lat: 47.0105
+  lon: 28.8638
+  feeds:
+    - https://api.agora.md/rss
+    - https://trm.md/ro/rss
+    - https://www.moldpres.md/rss-moldpres
+    - https://timpul.md/feed
+    - https://unimedia.info/ro/rss/all/
