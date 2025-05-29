@@ -1,8 +1,8 @@
 # collectors.py – fetch recent RSS items (≤24 h), deduplicate by topic
-# per-day, summarise, plus weather helper.
+# across rolling window, summarise, plus weather helper.
 
 import os, re, time, asyncio, aiohttp, feedparser
-from datetime import datetime as dt, date, timedelta
+from datetime import datetime as dt, timedelta
 from zoneinfo import ZoneInfo
 from summariser import summarise_article
 from openai import AsyncOpenAI
@@ -20,19 +20,11 @@ OWM_KEY = os.getenv("WEATHER_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 client = AsyncOpenAI(api_key=OPENAI_API_KEY)
 
-# ─────────────────────────── in-memory caches ────────────────────────
-SEEN_IDS:     dict[str, set[str]] = {}   # city → {entry-uid}
-TOPICS_SEEN:  dict[str, set[str]] = {}   # city → {topic hashes}
-CACHE_DAY:    dict[str, date]      = {}  # city → date when caches were reset
+# ─────────────────────────── rolling caches ──────────────────────────
+SEEN_IDS: dict[str, list[tuple[float, str]]] = {}     # city → list of (timestamp, uid)
+TOPICS_SEEN: dict[str, list[tuple[float, str]]] = {}  # city → list of (timestamp, topic_key)
 
 # ──────────────────────────── helpers ───────────────────────────────
-def _reset_daily_caches(city: str, today: date) -> None:
-    if CACHE_DAY.get(city) != today:
-        SEEN_IDS.pop(city,  None)
-        TOPICS_SEEN.pop(city, None)
-        CACHE_DAY[city] = today
-
-
 def _is_recent(entry, tz: ZoneInfo, hours: int = 24) -> bool:
     tm = entry.get("published_parsed") or entry.get("updated_parsed")
     if not tm:
@@ -64,10 +56,19 @@ async def fetch_feed(url: str) -> list[feedparser.FeedParserDict]:
 
 # ─────────────────────── core: latest items per city ─────────────────
 async def get_latest_items(city_key: str, cfg: dict, limit: int = 5) -> list[str]:
-    tz    = ZoneInfo(cfg.get("tz", "UTC"))
-    today = dt.now(tz).date()
-    _reset_daily_caches(city_key, today)
+    tz = ZoneInfo(cfg.get("tz", "UTC"))
+    now = time.time()
+    cutoff = now - 86400  # 24 hours in seconds
 
+    # Prune expired cache entries
+    SEEN_IDS[city_key] = [(ts, uid) for ts, uid in SEEN_IDS.get(city_key, []) if ts >= cutoff]
+    TOPICS_SEEN[city_key] = [(ts, topic) for ts, topic in TOPICS_SEEN.get(city_key, []) if ts >= cutoff]
+
+    # Load seen items
+    ids_seen = set(uid for ts, uid in SEEN_IDS[city_key])
+    topics_seen = set(topic for ts, topic in TOPICS_SEEN[city_key])
+
+    # Fetch feeds and filter recent entries
     tasks = [fetch_feed(u) for u in cfg.get("feeds", [])]
     all_entries: list = []
     for coro in asyncio.as_completed(tasks):
@@ -79,9 +80,6 @@ async def get_latest_items(city_key: str, cfg: dict, limit: int = 5) -> list[str
     )
 
     fresh = []
-    ids_seen = SEEN_IDS.setdefault(city_key, set())
-    topics_seen = TOPICS_SEEN.setdefault(city_key, set())
-
     for e in all_entries:
         uid = e.get("id") or e.get("link")
         topic = await _topic_key(e)
@@ -89,8 +87,8 @@ async def get_latest_items(city_key: str, cfg: dict, limit: int = 5) -> list[str
             continue
         fresh.append(e)
         if uid:
-            ids_seen.add(uid)
-        topics_seen.add(topic)
+            SEEN_IDS[city_key].append((now, uid))
+        TOPICS_SEEN[city_key].append((now, topic))
         if len(fresh) >= limit:
             break
 
@@ -134,6 +132,6 @@ async def get_extras(city_key: str, cfg: dict) -> str:
         sunrise = dt.fromtimestamp(data["sys"]["sunrise"], tz).strftime("%H:%M")
         sunset = dt.fromtimestamp(data["sys"]["sunset"], tz).strftime("%H:%M")
 
-        return f"------\n ☀ {sunrise} • 🌇 {sunset}\n{emoji} {temp} {sym}, {descr}\n-------"
+        return f"------\n{emoji} {temp} {sym}, {descr}\n ☀ {sunrise} • 🌇 {sunset}\n-------"
     except Exception:
         return ""
