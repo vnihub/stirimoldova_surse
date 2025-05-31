@@ -55,7 +55,7 @@ async def fetch_feed(url: str) -> list[feedparser.FeedParserDict]:
 
 
 # ─────────────────────── core: latest items per city ─────────────────
-async def get_latest_items(city_key: str, cfg: dict, limit: int = 5) -> list[str]:
+async def get_latest_items(city_key: str, cfg: dict, limit: int = 7) -> list[str]:
     tz = ZoneInfo(cfg.get("tz", "UTC"))
     now = time.time()
     cutoff = now - 86400  # 24 hours in seconds
