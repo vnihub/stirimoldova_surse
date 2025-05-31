@@ -273,7 +273,7 @@ chisinau:
   lon: 28.8638
   feeds:
     #not renfreshing - https://trm.md/ro/rss
-    - https://moldpres.md/config/rss.php?lang=rom
     - https://timpul.md/feed
     - https://unimedia.info/ro/rss/all/
+    - https://moldpres.md/config/rss.php?lang=rom
     - https://api.agora.md/rss
