@@ -77,8 +77,8 @@ santander:
   lon: -3.8099
   feeds:
     - https://www.20minutos.es/rss/cantabria/
+    - https://www.ifomo.es/rss/santander/
     - http://www.santander.es/rss/noticia/rss.xml
-    - https://www.ifomo.es/rss/santander/ 
     - https://www.ifomo.es/rss/video/santander/
 
 oslo:
@@ -275,5 +275,4 @@ chisinau:
     #not renfreshing - https://trm.md/ro/rss
     - https://timpul.md/feed
     - https://unimedia.info/ro/rss/all/
-    - https://moldpres.md/config/rss.php?lang=rom
     - https://api.agora.md/rss
