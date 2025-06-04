@@ -19,7 +19,7 @@ import threading
 with open("config.yaml", "r", encoding="utf-8") as f:
     CONFIG = yaml.safe_load(f)
 
-SLOTS = [(8, 0), (13, 0), (16, 30), (20, 15)]
+SLOTS = [(8, 0), (12, 5), (16, 30), (20, 15)]
 
 async def job(city_key: str):
     news = await get_latest_items(city_key, CONFIG[city_key], limit=7)  # <-- increased limit here
