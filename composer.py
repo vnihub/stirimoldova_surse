@@ -17,17 +17,17 @@ LOCAL_HEADERS = {
     "tr": "Şimdi", "bn": "এখন", "it": "Ora",
 }
 LOCAL_CTA_TEXT = {
-    "en": "Subscribe for daily news!",
-    "es": "¡Suscríbete para noticias diarias!",
-    "de": "Abonniere für tägliche Neuigkeiten!",
-    "fr": "Abonnez-vous aux infos quotidiennes!",
-    "ro": "Abonează-te pentru noutăți zilnice!",
-    "ja": "毎日のニュースを購読しましょう！",
-    "no": "Abonner for daglige nyheter!",
-    "pt": "Inscreva-se para notícias diárias!",
-    "tr": "Günlük haberler için abone olun!",
-    "bn": "দৈনিক খবরের জন্য সাবস্ক্রাইব করুন!",
-    "it": "Iscriviti per le notizie quotidiane!",
+    "en": "Subscribe. Daily news!",
+    "es": "¡Suscríbete. Noticias diarias!",
+    "de": "Abonniere. Tägliche Neuigkeiten!",
+    "fr": "Abonnez-vous. Infos quotidiennes!",
+    "ro": "Abonează-te. Noutăți zilnice!",
+    "ja": "購読. 毎日ニュース！",
+    "no": "Abonner. Daglige nyheter!",
+    "pt": "Inscreva-se. Notícias diárias!",
+    "tr": "Abone ol. Günlük haberler!",
+    "bn": "সাবস্ক্রাইব করুন. দৈনিক খবর!",
+    "it": "Iscriviti. Notizie quotidiane!",
 }
 
 # ------------------------------------------------ helpers

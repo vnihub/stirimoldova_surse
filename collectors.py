@@ -134,6 +134,6 @@ async def get_extras(city_key: str, cfg: dict) -> str:
         sunrise = dt.fromtimestamp(data["sys"]["sunrise"], tz).strftime("%H:%M")
         sunset = dt.fromtimestamp(data["sys"]["sunset"], tz).strftime("%H:%M")
 
-        return f"------\n{emoji} {temp} {sym}, {descr}\n ☀ {sunrise} • 🌇 {sunset}\n-------"
+        return f"------\n{emoji} {temp} {sym}, {descr}\n☀ {sunrise} • 🌇 {sunset}\n-------"
     except Exception:
         return ""
