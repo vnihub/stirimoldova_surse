@@ -272,7 +272,7 @@ chisinau:
   lat: 47.0105
   lon: 28.8638
   feeds:
-    #not renfreshing - https://trm.md/ro/rss
+    #not refreshing - https://trm.md/ro/rss
     - https://timpul.md/feed
     - https://unimedia.info/ro/rss/all/
     - https://api.agora.md/rss
