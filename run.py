@@ -1,10 +1,9 @@
-# run.py  – per-city time-zone aware with Telegram crash/start alerts
+# run.py  – Chişinău-only bot with Telegram crash/start alerts
 
 import sys
 sys.stdout.reconfigure(line_buffering=True)
 print("🟢 Bot is starting…", flush=True)
 
-from events import compose_events_and_send
 from dotenv import load_dotenv
 load_dotenv()  # read .env first
 
@@ -19,12 +18,17 @@ import threading
 with open("config.yaml", "r", encoding="utf-8") as f:
     CONFIG = yaml.safe_load(f)
 
+CITY_KEY = "chisinau"
+cfg = CONFIG[CITY_KEY]
+tz = ZoneInfo(cfg.get("tz", "UTC"))
+
+# five news slots per day
 SLOTS = [(8, 8), (11, 11), (14, 14), (18, 18), (21, 12)]
 
-async def job(city_key: str):
-    news = await get_latest_items(city_key, CONFIG[city_key], limit=7)  # <-- increased limit here
-    extras = await get_extras(city_key, CONFIG[city_key])
-    await compose_and_send(city_key, news, extras)
+async def job():
+    news   = await get_latest_items(CITY_KEY, cfg, limit=7)
+    extras = await get_extras(CITY_KEY, cfg)
+    await compose_and_send(CITY_KEY, news, extras)
 
 def heartbeat():
     print("✅ Bot is still running…", flush=True)
@@ -37,40 +41,28 @@ def main():
 
         sched = AsyncIOScheduler(event_loop=loop)
 
-        for city_key, cfg in CONFIG.items():
-            tz = ZoneInfo(cfg.get("tz", "UTC"))
-
-            for h, m in SLOTS:
-                sched.add_job(
-                    job,
-                    "cron",
-                    args=[city_key],
-                    hour=h,
-                    minute=m,
-                    timezone=tz,
-                )
-
+        # schedule news posts
+        for h, m in SLOTS:
             sched.add_job(
-                compose_events_and_send,
+                job,
                 "cron",
-                args=[city_key],
-                hour=9,
-                minute=0,
+                hour=h,
+                minute=m,
                 timezone=tz,
             )
 
         sched.start()
-        print("City-bot scheduler started. Loop running forever …", flush=True)
+        print("Chişinău-bot scheduler started. Loop running forever …", flush=True)
         heartbeat()
 
         # ✅ Notify successful start
-        loop.create_task(send_alert("✅ Bot started successfully."))
+        loop.create_task(send_alert("✅ Chişinău bot started successfully."))
 
         loop.run_forever()
 
     except Exception as e:
         # 🚨 Notify on crash
-        loop.run_until_complete(send_alert(f"❌ Bot crashed:\n{str(e)}"))
+        loop.run_until_complete(send_alert(f"❌ Chişinău bot crashed:\n{str(e)}"))
         raise
 
 if __name__ == "__main__":
