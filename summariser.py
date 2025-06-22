@@ -22,12 +22,17 @@ async def fetch_article_text(url: str) -> str:
     except Exception:
         return ""
 
-async def summarise_article(entry, lang: str) -> str:
+async def summarise_article(entry, lang: str) -> str | None:
     title = entry.get("title", "")
     link = entry.get("link", "")
 
     lang = lang.lower()
     article_text = await fetch_article_text(link)
+    
+    # Skip article if it contains both keywords
+    if "Companii" in article_text and "Advertoriale" in article_text:
+        return None
+
     if not article_text:
         prompt_text = f"Summarise the headline '{title}' in ≤15 words, keep language {lang}, add one emoji prefix."
     else:
