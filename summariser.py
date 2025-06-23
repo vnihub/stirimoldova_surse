@@ -5,6 +5,7 @@ from openai import OpenAI
 from bs4 import BeautifulSoup
 from readability import Document
 from utils import tiny
+from playwright.async_api import async_playwright
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
@@ -22,16 +23,31 @@ async def fetch_article_text(url: str) -> str:
     except Exception:
         return ""
 
+async def is_advertorial(url: str) -> bool:
+    """Check if the full rendered page contains both 'Companii' and 'Advertoriale'."""
+    try:
+        async with async_playwright() as p:
+            browser = await p.chromium.launch(headless=True)
+            page = await browser.new_page()
+            await page.goto(url, timeout=15000)
+            content = await page.content()
+            await browser.close()
+        return "Companii" in content and "Advertoriale" in content
+    except Exception:
+        return False  # Fail-safe: don’t skip if check fails
+
 async def summarise_article(entry, lang: str) -> str | None:
     title = entry.get("title", "")
     link = entry.get("link", "")
 
     lang = lang.lower()
+
+    # Skip Agora advertorials
+    if "agora.md" in link:
+        if await is_advertorial(link):
+            return None
+
     article_text = await fetch_article_text(link)
-    
-    # Skip article if it contains both keywords
-    if "Companii" in article_text and "Advertoriale" in article_text:
-        return None
 
     if not article_text:
         prompt_text = f"Summarise the headline '{title}' in ≤15 words, keep language {lang}, add one emoji prefix."
