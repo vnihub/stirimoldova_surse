@@ -10,3 +10,4 @@ beautifulsoup4
 readability-lxml
 numpy
 playwright
+pytz
