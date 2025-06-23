@@ -5,7 +5,7 @@ from openai import OpenAI
 from bs4 import BeautifulSoup
 from readability import Document
 from utils import tiny
-from playwright.async_api import async_playwright #comment
+from playwright.async_api import async_playwright
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
@@ -42,7 +42,11 @@ async def summarise_article(entry, lang: str) -> str | None:
 
     lang = lang.lower()
 
-    # Skip Agora advertorials
+    # Skip advertorials from Unimedia
+    if "unimedia.info" in link and "/advertoriale/" in link:
+        return None
+
+    # Skip advertorials from Agora (rendered page content)
     if "agora.md" in link:
         if await is_advertorial(link):
             return None
