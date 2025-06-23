@@ -1,42 +1,49 @@
+# events_iticket.py – fetch and post today’s events from iTicket
+
 import datetime
 import pytz
-from playwright.async_api import async_playwright
-from composer import send_telegram_message
+import aiohttp
+from bs4 import BeautifulSoup
+from composer import compose_and_send  # ✅ fixed import
 
-CITY = "moldova"
-CHANNEL = "@stirimoldova_surse"  # Adjust if needed
+URL = "https://iticket.md/events"
+CHANNEL = "chisinau"
 
-async def fetch_today_events():
-    today_str = datetime.datetime.now(pytz.timezone("Europe/Chisinau")).strftime("%Y-%m-%d")
-    events = []
+async def fetch_today_iticket_events() -> list[str]:
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(URL, timeout=20) as resp:
+                html = await resp.text()
 
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
-        page = await browser.new_page()
-        await page.goto("https://iticket.md/events", timeout=30000)
-        cards = await page.locator(".event-card").all()
+        soup = BeautifulSoup(html, "html.parser")
+        today = datetime.datetime.now(pytz.timezone("Europe/Chisinau")).day
+        entries = []
 
-        for card in cards:
-            try:
-                title = await card.locator('[itemprop="name"]').get_attribute("content")
-                date = await card.locator('[itemprop="startDate"]').get_attribute("content")
-                url = await card.locator("a").get_attribute("href")
-
-                if date and date.startswith(today_str):
-                    time = date[11:16] if "T" in date else ""
-                    events.append(f"🎟️ <b>{title.strip()}</b>\n🕒 {time} | <a href=\"{url}\">Vezi detalii</a>")
-            except Exception:
+        for card in soup.select(".event-card"):
+            date_block = card.select_one(".e-c-time span")
+            title = card.select_one(".e-c-name")
+            link = card.select_one("a[href]")
+            if not (date_block and title and link):
                 continue
 
-        await browser.close()
+            try:
+                event_day = int(date_block.text.strip())
+                if event_day != today:
+                    continue
+            except ValueError:
+                continue
 
-    return events
+            href = link["href"]
+            full_url = f"https://iticket.md{href}" if href.startswith("/") else href
+            entries.append(f"🎫 <b>{title.text.strip()}</b>\n{full_url}")
+
+        return entries
+
+    except Exception as e:
+        print(f"❌ Error fetching iTicket events: {e}")
+        return []
 
 async def events_iticket_job():
-    events = await fetch_today_events()
-    if not events:
-        message = "📅 Astăzi nu sunt evenimente în Chișinău."
-    else:
-        message = "<b>📍 Evenimente azi în Chișinău:</b>\n\n" + "\n\n".join(events)
-
-    await send_telegram_message(CHANNEL, message)
+    events = await fetch_today_iticket_events()
+    if events:
+        await compose_and_send(CHANNEL, events)
