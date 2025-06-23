@@ -13,6 +13,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from collectors import get_latest_items, get_extras
 from composer import compose_and_send
 from alert import send_alert  # 🚨 alert system import
+from events_iticket import events_iticket_job  # ✅ new import
 import threading
 
 with open("config.yaml", "r", encoding="utf-8") as f:
@@ -50,6 +51,15 @@ def main():
                 minute=m,
                 timezone=tz,
             )
+
+        # ✅ schedule iTicket events post at 09:30
+        sched.add_job(
+            events_iticket_job,
+            "cron",
+            hour=9,
+            minute=30,
+            timezone=tz,
+        )
 
         sched.start()
         print("Chişinău-bot scheduler started. Loop running forever …", flush=True)
