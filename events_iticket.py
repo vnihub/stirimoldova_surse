@@ -1,49 +1,90 @@
-# events_iticket.py – fetch and post today’s events from iTicket
-
-import datetime
-import pytz
 import aiohttp
 from bs4 import BeautifulSoup
-from composer import compose_and_send  # ✅ fixed import
+from datetime import datetime
+from zoneinfo import ZoneInfo
+from composer import BOT, _chat_id
+from utils import tiny
 
-URL = "https://iticket.md/events"
-CHANNEL = "chisinau"
+CITY_KEY = "chisinau"
+CATEGORY_URLS = [
+    "https://iticket.md/events/iticket",
+    "https://iticket.md/events/concert",
+    "https://iticket.md/events/teatru",
+    "https://iticket.md/events/festival",
+    "https://iticket.md/events/divers",
+    "https://iticket.md/events/copii",
+]
 
-async def fetch_today_iticket_events() -> list[str]:
+tz = ZoneInfo("Europe/Chisinau")
+
+def extract_event_cards(html):
+    soup = BeautifulSoup(html, "html.parser")
+    return soup.select(".event-card")
+
+def extract_event_data(card):
     try:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(URL, timeout=20) as resp:
-                html = await resp.text()
+        link_tag = card.find("a", href=True)
+        url = link_tag["href"]
+        title = card.select_one(".e-c-name").get_text(strip=True)
+        date = card.select_one(".e-c-time span").get_text(strip=True)
+        month = card.select_one(".e-c-month").get_text(strip=True)
+        venue = card.select_one(".e-c-location-title").get_text(strip=True)
+        return {"url": url, "title": title, "date": date, "month": month, "venue": venue}
+    except Exception:
+        return None
 
-        soup = BeautifulSoup(html, "html.parser")
-        today = datetime.datetime.now(pytz.timezone("Europe/Chisinau")).day
-        entries = []
+def match_today(event):
+    try:
+        today = datetime.now(tz)
+        return event["date"] == f"{today.day}" and event["month"].lower().startswith(today.strftime("%b").lower())
+    except:
+        return False
 
-        for card in soup.select(".event-card"):
-            date_block = card.select_one(".e-c-time span")
-            title = card.select_one(".e-c-name")
-            link = card.select_one("a[href]")
-            if not (date_block and title and link):
-                continue
-
-            try:
-                event_day = int(date_block.text.strip())
-                if event_day != today:
-                    continue
-            except ValueError:
-                continue
-
-            href = link["href"]
-            full_url = f"https://iticket.md{href}" if href.startswith("/") else href
-            entries.append(f"🎫 <b>{title.text.strip()}</b>\n{full_url}")
-
-        return entries
-
-    except Exception as e:
-        print(f"❌ Error fetching iTicket events: {e}")
+async def fetch_events_from_url(session, url):
+    try:
+        async with session.get(url, timeout=10) as resp:
+            html = await resp.text()
+            cards = extract_event_cards(html)
+            return [extract_event_data(card) for card in cards if extract_event_data(card)]
+    except:
         return []
 
 async def events_iticket_job():
-    events = await fetch_today_iticket_events()
-    if events:
-        await compose_and_send(CHANNEL, events)
+    async with aiohttp.ClientSession() as session:
+        all_events = []
+        for url in CATEGORY_URLS:
+            events = await fetch_events_from_url(session, url)
+            all_events.extend(events)
+
+    seen = set()
+    today_events = []
+    for e in all_events:
+        if not match_today(e):
+            continue
+        key = (e["title"], e["url"])
+        if key in seen:
+            continue
+        seen.add(key)
+        short_url = await tiny(e["url"])
+        line = f"🎫 <b>{e['title']}</b> – {e['venue']} → <a href='{short_url}'>link</a>"
+        today_events.append(line)
+
+    if not today_events:
+        print("ℹ️ No events found for today – skipping events post.")
+        return
+
+    chat = _chat_id(CITY_KEY)
+    if not chat:
+        return
+
+    header = "🎭 <b>Evenimente astăzi</b>\n\n"
+    body = "\n\n".join(today_events)
+    footer = "\n\n🔁 Trimite prietenilor care ar vrea să iasă în oraș!"
+    text = header + body + footer
+
+    await BOT.send_message(
+        chat_id=int(chat) if chat.lstrip("-").isdigit() else chat,
+        text=text,
+        parse_mode="HTML",
+        disable_web_page_preview=False,
+    )

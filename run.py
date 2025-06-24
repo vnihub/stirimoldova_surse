@@ -24,11 +24,21 @@ cfg = CONFIG[CITY_KEY]
 tz = ZoneInfo(cfg.get("tz", "UTC"))
 
 # five news slots per day
-SLOTS = [(8, 8), (11, 11), (14, 14), (18, 18), (21, 12)]
+SLOTS = [(8, 8), (11, 11), (14, 14), (18, 18), (21, 21)]
 
 async def job():
-    news   = await get_latest_items(CITY_KEY, cfg, limit=7)
+    news = await get_latest_items(CITY_KEY, cfg, limit=7)
     extras = await get_extras(CITY_KEY, cfg)
+
+    # Debug logging to identify None or invalid entries
+    for i, item in enumerate(news):
+        if item is None:
+            print(f"⚠️ Warning: news[{i}] is None!")
+        elif not isinstance(item, str):
+            print(f"⚠️ Warning: news[{i}] is not a string: {type(item)}")
+        else:
+            print(f"✅ news[{i}] = {item[:60]}...")
+
     await compose_and_send(CITY_KEY, news, extras)
 
 def heartbeat():
