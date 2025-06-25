@@ -66,8 +66,8 @@ def main():
         sched.add_job(
             events_iticket_job,
             "cron",
-            hour=9,
-            minute=30,
+            hour=20,
+            minute=10,
             timezone=tz,
         )
 

@@ -4,6 +4,10 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 from composer import BOT, _chat_id
 from utils import tiny
+import logging
+
+# ✅ Setup logging
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 
 CITY_KEY = "chisinau"
 CATEGORY_URLS = [
@@ -30,23 +34,33 @@ def extract_event_data(card):
         month = card.select_one(".e-c-month").get_text(strip=True)
         venue = card.select_one(".e-c-location-title").get_text(strip=True)
         return {"url": url, "title": title, "date": date, "month": month, "venue": venue}
-    except Exception:
+    except Exception as e:
+        logging.warning(f"❌ Failed to extract event data: {e}")
         return None
 
 def match_today(event):
     try:
         today = datetime.now(tz)
-        return event["date"] == f"{today.day}" and event["month"].lower().startswith(today.strftime("%b").lower())
-    except:
+        result = (
+            event["date"] == f"{today.day}"
+            and event["month"].lower().startswith(today.strftime("%b").lower())
+        )
+        logging.debug(f"⏰ Checking if '{event['title']}' is today: {result}")
+        return result
+    except Exception as e:
+        logging.warning(f"❌ Failed to match date for event: {e}")
         return False
 
 async def fetch_events_from_url(session, url):
+    logging.info(f"🌐 Fetching events from: {url}")
     try:
         async with session.get(url, timeout=10) as resp:
             html = await resp.text()
             cards = extract_event_cards(html)
-            return [extract_event_data(card) for card in cards if extract_event_data(card)]
-    except:
+            logging.info(f"🧩 Found {len(cards)} event cards at {url}")
+            return [e for card in cards if (e := extract_event_data(card))]
+    except Exception as e:
+        logging.error(f"❌ Error fetching events from {url}: {e}")
         return []
 
 async def events_iticket_job():
@@ -55,6 +69,8 @@ async def events_iticket_job():
         for url in CATEGORY_URLS:
             events = await fetch_events_from_url(session, url)
             all_events.extend(events)
+
+    logging.info(f"📦 Total events scraped: {len(all_events)}")
 
     seen = set()
     today_events = []
@@ -68,13 +84,15 @@ async def events_iticket_job():
         short_url = await tiny(e["url"])
         line = f"🎫 <b>{e['title']}</b> – {e['venue']} → <a href='{short_url}'>link</a>"
         today_events.append(line)
+        logging.info(f"✅ Event matched: {e['title']} @ {e['venue']}")
 
     if not today_events:
-        print("ℹ️ No events found for today – skipping events post.")
+        logging.info("ℹ️ No events found for today – skipping events post.")
         return
 
     chat = _chat_id(CITY_KEY)
     if not chat:
+        logging.warning("❌ No chat ID found for city")
         return
 
     header = "🎭 <b>Evenimente astăzi</b>\n\n"
@@ -88,3 +106,5 @@ async def events_iticket_job():
         parse_mode="HTML",
         disable_web_page_preview=False,
     )
+
+    logging.info(f"📨 Events post sent with {len(today_events)} items.")
