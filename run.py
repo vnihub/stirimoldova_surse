@@ -67,7 +67,7 @@ def main():
             events_iticket_job,
             "cron",
             hour=20,
-            minute=10,
+            minute=30,
             timezone=tz,
         )
 

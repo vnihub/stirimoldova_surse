@@ -41,12 +41,17 @@ def extract_event_data(card):
 def match_today(event):
     try:
         today = datetime.now(tz)
-        result = (
-            event["date"] == f"{today.day}"
-            and event["month"].lower().startswith(today.strftime("%b").lower())
+        expected_day = str(today.day)
+        expected_month_prefix = today.strftime("%b").lower()
+
+        actual_day = event["date"].strip()
+        actual_month = event["month"].strip().lower()
+
+        logging.info(
+            f"🧪 Comparing: actual='{actual_day} {actual_month}' vs expected='{expected_day} {expected_month_prefix}'"
         )
-        logging.debug(f"⏰ Checking if '{event['title']}' is today: {result}")
-        return result
+
+        return actual_day == expected_day and actual_month.startswith(expected_month_prefix)
     except Exception as e:
         logging.warning(f"❌ Failed to match date for event: {e}")
         return False
