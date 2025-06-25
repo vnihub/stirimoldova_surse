@@ -40,27 +40,17 @@ def extract_event_data(card):
 
 def match_today(event):
     try:
-        # Map Romanian short months to English 3-letter ones
         ro_to_en_months = {
             "ian.": "jan", "feb.": "feb", "mar.": "mar", "apr.": "apr", "mai.": "may",
             "iun.": "jun", "iul.": "jul", "aug.": "aug", "sep.": "sep",
             "oct.": "oct", "noi.": "nov", "dec.": "dec"
         }
-
         today = datetime.now(tz)
         expected_day = str(today.day)
-        expected_month = today.strftime("%b").lower()  # e.g., "jun"
-
+        expected_month = today.strftime("%b").lower()
         actual_day = event["date"].strip()
         actual_month_ro = event["month"].strip().lower()
-
         translated_month = ro_to_en_months.get(actual_month_ro, "")
-
-        logging.info(
-            f"🧪 Comparing: actual='{actual_day} {actual_month_ro}' "
-            f"(→ {translated_month}) vs expected='{expected_day} {expected_month}'"
-        )
-
         return actual_day == expected_day and translated_month == expected_month
     except Exception as e:
         logging.warning(f"❌ Failed to match date for event: {e}")

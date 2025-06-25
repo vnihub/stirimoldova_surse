@@ -62,14 +62,14 @@ def main():
                 timezone=tz,
             )
 
-        # ✅ schedule iTicket events post at 09:30
+        # ✅ schedule iTicket events post at 09:09
         sched.add_job(
             events_iticket_job,
             "cron",
-            hour=20,
-            minute=35,
+            hour=9,
+            minute=9,
             timezone=tz,
-        )
+)
 
         sched.start()
         print("Chişinău-bot scheduler started. Loop running forever …", flush=True)
