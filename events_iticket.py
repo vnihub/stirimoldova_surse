@@ -102,7 +102,7 @@ async def events_iticket_job():
 
     header = "🎭 <b>Evenimente astăzi</b>\n\n"
     body = "\n\n".join(today_events)
-    footer = "\n\n🔁 Trimite prietenilor care ar vrea să iasă în oraș!"
+    footer = "\n\n----\n🔁 Expediază lista prietenilor!\n----"
     text = header + body + footer
 
     await BOT.send_message(

@@ -70,7 +70,7 @@ async def compose_and_send(city_key: str,
         cta = f'🔔 {LOCAL_CTA_TEXT.get(lang, LOCAL_CTA_TEXT["en"])} 👈'
 
     header = f'📰 <b>{_display_city(city_key)} {label}</b>\n\n'
-    body   = "\n\n".join(news_lines)               # ← no placeholder
+    body = "\n\n".join(line for line in news_lines if line)
     text   = header + body + (f"\n\n{extras}" if extras else "") + f"\n\n{cta}"
 
     await BOT.send_message(
