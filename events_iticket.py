@@ -17,6 +17,7 @@ CATEGORY_URLS = [
     "https://iticket.md/events/divers",
     "https://iticket.md/events/copii",
     "https://iticket.md/events/standup",
+    "https://iticket.md/events/concert",
 ]
 TRAINING_URL = "https://iticket.md/events/training"
 
