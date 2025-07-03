@@ -36,7 +36,7 @@ def extract_event_data(card):
         month = card.select_one(".e-c-month").get_text(strip=True)
         venue = card.select_one(".e-c-location-title").get_text(strip=True)
         return {"url": url, "title": title, "date": date, "month": month, "venue": venue}
-    except Exception:
+    except:
         return None
 
 def match_today(event):
@@ -48,10 +48,21 @@ def match_today(event):
     today = datetime.now(tz)
     expected_day = str(today.day)
     expected_month = today.strftime("%b").lower()
+
     actual_day = event["date"].strip()
     actual_month_ro = event["month"].strip().lower()
     translated_month = ro_to_en_months.get(actual_month_ro, "")
-    return actual_day == expected_day and translated_month == expected_month
+
+    # match e.g. "3", "03", "3–4", "3-4", "3/4"
+    day_matches = (
+        actual_day == expected_day or
+        actual_day.lstrip("0") == expected_day or
+        actual_day.startswith(f"{expected_day}–") or
+        actual_day.startswith(f"{expected_day}-") or
+        actual_day.startswith(f"{expected_day}/")
+    )
+
+    return day_matches and translated_month == expected_month
 
 async def fetch_events_from_url(session, url):
     try:
@@ -68,7 +79,7 @@ async def events_iticket_job():
         for url in CATEGORY_URLS:
             events = await fetch_events_from_url(session, url)
             all_events.extend(events)
-        
+
         # also fetch training events for filtering
         training_events = await fetch_events_from_url(session, TRAINING_URL)
         training_blacklist = {(e['title'], e['url']) for e in training_events}
