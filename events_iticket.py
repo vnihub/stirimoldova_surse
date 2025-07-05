@@ -4,9 +4,9 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 import pytz
 import logging
-import re # Import the regular expression module
+import re
 
-# Configure logging
+# Configure logging (ensure this is at the top of your file)
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Constants
@@ -31,7 +31,6 @@ MONTH_MAPPING = {
 TZ = pytz.timezone('Europe/Chisinau')
 
 # Training blacklist to avoid posting events that are not relevant or duplicates
-# Add entries in lowercase for case-insensitive matching
 TRAINING_BLACKLIST = [
     "în curând", # "Coming soon"
     "test",
@@ -157,10 +156,12 @@ def match_today(event: dict) -> bool:
     logging.info(f"  -> Day Matches: {day_matches}, Month Matches: {month_matches}, Overall Match: {result}")
     return result
 
-async def get_events_today() -> list[dict]:
+async def events_iticket_job() -> list[dict]: # Renamed to events_iticket_job
     """
     Collects events for today from all specified categories on iticket.md.
+    This function is intended to be called by APScheduler.
     """
+    logging.info("Starting iTicket.md scraping job...")
     all_events = []
     today_events = []
 
@@ -188,15 +189,12 @@ async def get_events_today() -> list[dict]:
             logging.info(f"Skipping event as it does not match today: {event['title']}")
 
     logging.info(f"Total events matching today: {len(today_events)}")
-    return today_events
-
-# Main execution for testing
-async def main():
-    logging.info("Starting iTicket.md scraping job...")
-    events = await get_events_today()
-    if events:
+    
+    # You will likely want to add your Telegram posting logic here,
+    # or ensure that your run.py handles the 'today_events' returned by this function.
+    if today_events:
         logging.info("Events for today:")
-        for event in events:
+        for event in today_events:
             logging.info(f"  - Title: {event['title']}")
             logging.info(f"    Date: {event['date']} {event['month']}")
             logging.info(f"    Location: {event['location']}")
@@ -206,7 +204,9 @@ async def main():
             logging.info("-" * 20)
     else:
         logging.info("No events found for today.")
-    logging.info("Job executed successfully.")
+    
+    logging.info("iTicket.md scraping job finished.")
+    return today_events # Return the list of events for today
 
-if __name__ == "__main__":
-    asyncio.run(main())
+# Removed the main() and if __name__ == "__main__": block
+# as this file is now intended to be imported by run.py
