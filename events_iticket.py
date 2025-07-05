@@ -1,119 +1,212 @@
+import asyncio
 import aiohttp
 from bs4 import BeautifulSoup
 from datetime import datetime
-from zoneinfo import ZoneInfo
-from composer import BOT, _chat_id
-from utils import tiny
+import pytz
 import logging
+import re # Import the regular expression module
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-CITY_KEY = "chisinau"
-CATEGORY_URLS = [
-    "https://iticket.md/events/iticket",
-    "https://iticket.md/events/concert",
-    "https://iticket.md/events/teatru",
-    "https://iticket.md/events/festival",
-    "https://iticket.md/events/divers",
-    "https://iticket.md/events/copii",
-    "https://iticket.md/events/standup",
-    "https://iticket.md/events/concert",
+# Constants
+ITICKET_BASE_URL = "https://iticket.md"
+CATEGORY_URLS = {
+    "teatru": f"{ITICKET_BASE_URL}/events/teatru",
+    "concerte": f"{ITICKET_BASE_URL}/events/concerte",
+    "petreceri": f"{ITICKET_BASE_URL}/events/petreceri",
+    "copii": f"{ITICKET_BASE_URL}/events/copii",
+    "stand-up": f"{ITICKET_BASE_URL}/events/stand-up",
+    "alte-evenimente": f"{ITICKET_BASE_URL}/events/alte-evenimente"
+}
+
+# Romanian to English month mapping for comparison
+MONTH_MAPPING = {
+    "ian.": "jan", "feb.": "feb", "mar.": "mar", "apr.": "apr",
+    "mai": "may", "iun.": "jun", "iul.": "jul", "aug.": "aug",
+    "sep.": "sep", "oct.": "oct", "noi.": "nov", "dec.": "dec"
+}
+
+# Timezone for Moldova (EET/EEST)
+TZ = pytz.timezone('Europe/Chisinau')
+
+# Training blacklist to avoid posting events that are not relevant or duplicates
+# Add entries in lowercase for case-insensitive matching
+TRAINING_BLACKLIST = [
+    "în curând", # "Coming soon"
+    "test",
+    # Add other irrelevant event titles or keywords here
 ]
-TRAINING_URL = "https://iticket.md/events/training"
 
-tz = ZoneInfo("Europe/Chisinau")
-
-def extract_event_cards(html):
-    soup = BeautifulSoup(html, "html.parser")
-    return soup.select(".event-card")
-
-def extract_event_data(card):
+async def fetch_html(url: str) -> str | None:
+    """Fetches HTML content from a given URL."""
     try:
-        link_tag = card.find("a", href=True)
-        url = link_tag["href"]
-        title = card.select_one(".e-c-name").get_text(strip=True)
-        date = card.select_one(".e-c-time span").get_text(strip=True)
-        month = card.select_one(".e-c-month").get_text(strip=True)
-        venue = card.select_one(".e-c-location-title").get_text(strip=True)
-        return {"url": url, "title": title, "date": date, "month": month, "venue": venue}
-    except:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, timeout=15) as response:
+                response.raise_for_status()  # Raise an exception for bad status codes
+                return await response.text()
+    except aiohttp.ClientError as e:
+        logging.error(f"Network error fetching {url}: {e}")
+        return None
+    except asyncio.TimeoutError:
+        logging.error(f"Timeout fetching {url}")
+        return None
+    except Exception as e:
+        logging.error(f"An unexpected error occurred while fetching {url}: {e}")
         return None
 
-def match_today(event):
-    ro_to_en_months = {
-        "ian.": "jan", "feb.": "feb", "mar.": "mar", "apr.": "apr", "mai.": "may",
-        "iun.": "jun", "iul.": "jul", "aug.": "aug", "sep.": "sep",
-        "oct.": "oct", "noi.": "nov", "dec.": "dec"
-    }
-    today = datetime.now(tz)
-    expected_day = str(today.day)
-    expected_month = today.strftime("%b").lower()
-
-    actual_day = event["date"].strip()
-    actual_month_ro = event["month"].strip().lower()
-    translated_month = ro_to_en_months.get(actual_month_ro, "")
-
-    # match e.g. "3", "03", "3–4", "3-4", "3/4"
-    day_matches = (
-        actual_day == expected_day or
-        actual_day.lstrip("0") == expected_day or
-        actual_day.startswith(f"{expected_day}–") or
-        actual_day.startswith(f"{expected_day}-") or
-        actual_day.startswith(f"{expected_day}/")
-    )
-
-    return day_matches and translated_month == expected_month
-
-async def fetch_events_from_url(session, url):
+def extract_event_data(card: BeautifulSoup) -> dict | None:
+    """Extracts event details from a single event card."""
     try:
-        async with session.get(url, timeout=10) as resp:
-            html = await resp.text()
-            cards = extract_event_cards(html)
-            return [e for card in cards if (e := extract_event_data(card))]
-    except:
-        return []
+        # Extract title
+        title_element = card.select_one(".e-c-name")
+        title = title_element.get_text(strip=True) if title_element else "N/A"
 
-async def events_iticket_job():
-    async with aiohttp.ClientSession() as session:
-        all_events = []
-        for url in CATEGORY_URLS:
-            events = await fetch_events_from_url(session, url)
-            all_events.extend(events)
+        # Check against training blacklist
+        if any(keyword in title.lower() for keyword in TRAINING_BLACKLIST):
+            logging.info(f"Skipping blacklisted event: {title}")
+            return None
 
-        # also fetch training events for filtering
-        training_events = await fetch_events_from_url(session, TRAINING_URL)
-        training_blacklist = {(e['title'], e['url']) for e in training_events}
+        # Extract date (day number)
+        date_element = card.select_one(".e-c-time span")
+        date = date_element.get_text(strip=True) if date_element else "N/A"
 
-    seen = set()
+        # Extract month
+        month_element = card.select_one(".e-c-month")
+        month = month_element.get_text(strip=True) if month_element else "N/A"
+
+        # Extract location/venue
+        location_element = card.select_one(".e-c-location-title")
+        location = location_element.get_text(strip=True) if location_element else "N/A"
+
+        # Extract image URL
+        img_element = card.select_one(".e-c-image img")
+        image_url = img_element['src'] if img_element and 'src' in img_element.attrs else "N/A"
+        # Prepend base URL if image_url is relative
+        if image_url and image_url != "N/A" and not image_url.startswith('http'):
+            image_url = ITICKET_BASE_URL + image_url
+
+        # Extract event URL
+        event_url_element = card.select_one("a")
+        event_url = event_url_element['href'] if event_url_element and 'href' in event_url_element.attrs else "N/A"
+        # Prepend base URL if event_url is relative
+        if event_url and event_url != "N/A" and not event_url.startswith('http'):
+            event_url = ITICKET_BASE_URL + event_url
+
+        # Extract price (meta itemprop="price")
+        price_element = card.select_one('meta[itemprop="price"]')
+        price = price_element['content'] if price_element and 'content' in price_element.attrs else "N/A"
+        
+        # Extract priceCurrency (meta itemprop="priceCurrency")
+        price_currency_element = card.select_one('meta[itemprop="priceCurrency"]')
+        price_currency = price_currency_element['content'] if price_currency_element and 'content' in price_currency_element.attrs else "MDL" # Default to MDL
+
+        # Combine price and currency
+        full_price = f"{price} {price_currency}" if price != "N/A" else "N/A"
+
+        return {
+            "title": title,
+            "date": date,
+            "month": month,
+            "location": location,
+            "image_url": image_url,
+            "event_url": event_url,
+            "price": full_price,
+        }
+    except AttributeError:
+        logging.warning(f"Skipping event card due to missing expected elements. Card HTML: {card}")
+        return None
+    except Exception as e:
+        logging.error(f"Error extracting event data from card: {e}. Card HTML: {card}")
+        return None
+
+def match_today(event: dict) -> bool:
+    """Checks if the event's date and month match today's date and month."""
+    now = datetime.now(TZ)
+    expected_day = str(now.day)
+    expected_month = now.strftime('%b').lower().replace('.', '') # e.g., 'jul'
+
+    actual_day_raw = event["date"]
+    actual_month_ro = event["month"].lower().replace('.', '') # Remove dot from month e.g., 'iul'
+
+    translated_month = MONTH_MAPPING.get(actual_month_ro, actual_month_ro)
+
+    # Use regex to extract the day number, handling leading zeros or other characters
+    day_match = re.match(r"(\d+)", actual_day_raw)
+    actual_day = day_match.group(1) if day_match else None
+
+    logging.info(f"Checking event: Title='{event['title']}', Scraped Date='{actual_day_raw}', Scraped Month='{actual_month_ro}'")
+    logging.info(f"  -> Parsed Day: '{actual_day}', Translated Month: '{translated_month}'")
+    logging.info(f"  -> Expected Day: '{expected_day}', Expected Month: '{expected_month}'")
+
+    day_matches = False
+    if actual_day: # Ensure a day was successfully extracted
+        # Direct match (e.g., '5' == '5')
+        if actual_day == expected_day:
+            day_matches = True
+        # Handle cases where scraped day might be '05' for '5'
+        elif actual_day.lstrip('0') == expected_day:
+            day_matches = True
+        # Handle cases where scraped day might be '5–' or similar, by checking start
+        elif actual_day.startswith(expected_day):
+            day_matches = True
+
+    month_matches = (translated_month == expected_month)
+
+    result = day_matches and month_matches
+    logging.info(f"  -> Day Matches: {day_matches}, Month Matches: {month_matches}, Overall Match: {result}")
+    return result
+
+async def get_events_today() -> list[dict]:
+    """
+    Collects events for today from all specified categories on iticket.md.
+    """
+    all_events = []
     today_events = []
-    for e in all_events:
-        if (e["title"], e["url"]) in training_blacklist:
-            continue
-        if not match_today(e):
-            continue
-        key = (e["title"], e["url"])
-        if key in seen:
-            continue
-        seen.add(key)
-        short_url = await tiny(e["url"])
-        line = f"🎫 {e['title']} – {e['venue']} → <a href='{short_url}'>link</a>"
-        today_events.append(line)
 
-    if not today_events:
-        return
+    for category, url in CATEGORY_URLS.items():
+        logging.info(f"Scraping events from category: {category} ({url})")
+        html_content = await fetch_html(url)
+        if html_content:
+            soup = BeautifulSoup(html_content, 'html.parser')
+            event_cards = soup.find_all('div', class_='event-card')
+            logging.info(f"Found {len(event_cards)} event cards in category: {category}")
 
-    chat = _chat_id(CITY_KEY)
-    if not chat:
-        return
+            for card in event_cards:
+                event = extract_event_data(card)
+                if event:
+                    all_events.append(event)
+        else:
+            logging.warning(f"Could not retrieve HTML for category: {category}")
 
-    header = "🎭 <b>Evenimente astăzi</b>\n\n"
-    body = "\n\n".join(today_events)
-    footer = "\n\n🔁 Trimite prietenilor care ar vrea să iasă în oraș!"
-    text = header + body + footer
+    logging.info(f"Total raw events collected: {len(all_events)}")
 
-    await BOT.send_message(
-        chat_id=int(chat) if chat.lstrip("-").isdigit() else chat,
-        text=text,
-        parse_mode="HTML",
-        disable_web_page_preview=False,
-    )
+    for event in all_events:
+        if match_today(event):
+            today_events.append(event)
+        else:
+            logging.info(f"Skipping event as it does not match today: {event['title']}")
+
+    logging.info(f"Total events matching today: {len(today_events)}")
+    return today_events
+
+# Main execution for testing
+async def main():
+    logging.info("Starting iTicket.md scraping job...")
+    events = await get_events_today()
+    if events:
+        logging.info("Events for today:")
+        for event in events:
+            logging.info(f"  - Title: {event['title']}")
+            logging.info(f"    Date: {event['date']} {event['month']}")
+            logging.info(f"    Location: {event['location']}")
+            logging.info(f"    Price: {event['price']}")
+            logging.info(f"    URL: {event['event_url']}")
+            logging.info(f"    Image: {event['image_url']}")
+            logging.info("-" * 20)
+    else:
+        logging.info("No events found for today.")
+    logging.info("Job executed successfully.")
+
+if __name__ == "__main__":
+    asyncio.run(main())
