@@ -79,3 +79,77 @@ async def compose_and_send(city_key: str,
         parse_mode="HTML",
         disable_web_page_preview=False,
     )
+
+async def compose_events_and_send(city_key: str, events: list[dict]):
+    """Builds and sends a Telegram post for iTicket events."""
+    if not events:
+        print(f"ℹ️  No events for {city_key} – post skipped.")
+        return
+
+    chat = _chat_id(city_key)
+    if not chat:
+        return
+
+    from config import CONFIG
+    lang = str(CONFIG.get(city_key, {}).get("lang", "ro")).lower()
+    
+    # Header
+    header = f"🗓️ <b>Evenimente Azi în {_display_city(city_key)}</b>\n\n"
+
+    # Event lines
+    event_lines = []
+    for event in events:
+        title = event.get('title', 'N/A')
+        location = event.get('location', 'N/A')
+        url = event.get('event_url', '#')
+        price = event.get('price', 'N/A')
+
+        # Format the price to be bold
+        if price != 'N/A':
+            price_text = f" • <b>{price}</b>"
+        else:
+            price_text = ""
+
+        event_lines.append(
+            f"📍 {title}\n"
+            f"🏢 {location}{price_text}\n"
+            f'<a href="{url}">Bilete</a>'
+        )
+    
+    body = "\n\n".join(event_lines)
+
+    # CTA link
+    if chat.startswith("@"):
+        subscribe_link = f"https://t.me/{chat.lstrip('@')}"
+        cta = f'\n\n🔔 <a href="{subscribe_link}">{LOCAL_CTA_TEXT.get(lang, LOCAL_CTA_TEXT["en"])}</a> 👈'
+    else:
+        cta = f'\n\n🔔 {LOCAL_CTA_TEXT.get(lang, LOCAL_CTA_TEXT["en"])} 👈'
+
+    text = header + body + cta
+
+    # For events, let's send with photo if available, otherwise just text
+    photo_url = events[0].get('image_url') if events else None
+
+    if photo_url and photo_url != "N/A":
+        try:
+            await BOT.send_photo(
+                chat_id=int(chat) if chat.lstrip("-").isdigit() else chat,
+                photo=photo_url,
+                caption=text,
+                parse_mode="HTML"
+            )
+        except Exception as e:
+            print(f"❌ Failed to send photo for event, sending text instead. Error: {e}")
+            await BOT.send_message(
+                chat_id=int(chat) if chat.lstrip("-").isdigit() else chat,
+                text=text,
+                parse_mode="HTML",
+                disable_web_page_preview=False
+            )
+    else:
+        await BOT.send_message(
+            chat_id=int(chat) if chat.lstrip("-").isdigit() else chat,
+            text=text,
+            parse_mode="HTML",
+            disable_web_page_preview=False
+        )

@@ -11,7 +11,7 @@ import asyncio, yaml
 from zoneinfo import ZoneInfo
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from collectors import get_latest_items, get_extras
-from composer import compose_and_send
+from composer import compose_and_send, compose_events_and_send
 from alert import send_alert  # 🚨 alert system import
 from events_iticket import events_iticket_job  # ✅ new import
 import threading
@@ -26,7 +26,7 @@ tz = ZoneInfo(cfg.get("tz", "UTC"))
 # five news slots per day
 SLOTS = [(8, 8), (11, 11), (14, 14), (18, 18), (21, 21)]
 
-async def job():
+async def run_news_job():
     news = await get_latest_items(CITY_KEY, cfg, limit=7)
     extras = await get_extras(CITY_KEY, cfg)
 
@@ -40,6 +40,12 @@ async def job():
             print(f"✅ news[{i}] = {item[:60]}...")
 
     await compose_and_send(CITY_KEY, news, extras)
+
+async def run_events_job():
+    """Runs the iTicket event scraper and posts the results."""
+    events = await events_iticket_job()
+    if events:
+        await compose_events_and_send(CITY_KEY, events)
 
 def heartbeat():
     print("✅ Bot is still running…", flush=True)
@@ -55,7 +61,7 @@ def main():
         # schedule news posts
         for h, m in SLOTS:
             sched.add_job(
-                job,
+                run_news_job,
                 "cron",
                 hour=h,
                 minute=m,
@@ -64,7 +70,7 @@ def main():
 
         # ✅ schedule iTicket events post at 09:09
         sched.add_job(
-            events_iticket_job,
+            run_events_job,
             "cron",
             hour=9,
             minute=9,

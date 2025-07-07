@@ -22,9 +22,9 @@ CATEGORY_URLS = {
 
 # Romanian to English month mapping for comparison
 MONTH_MAPPING = {
-    "ian.": "jan", "feb.": "feb", "mar.": "mar", "apr.": "apr",
-    "mai": "may", "iun.": "jun", "iul.": "jul", "aug.": "aug",
-    "sep.": "sep", "oct.": "oct", "noi.": "nov", "dec.": "dec"
+    "ian": "jan", "feb": "feb", "mar": "mar", "apr": "apr",
+    "mai": "may", "iun": "jun", "iul": "jul", "aug": "aug",
+    "sep": "sep", "oct": "oct", "noi": "nov", "dec": "dec"
 }
 
 # Timezone for Moldova (EET/EEST)
