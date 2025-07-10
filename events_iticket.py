@@ -30,11 +30,10 @@ MONTH_MAPPING = {
 # Timezone for Moldova (EET/EEST)
 TZ = pytz.timezone('Europe/Chisinau')
 
-# Training blacklist to avoid posting events that are not relevant or duplicates
-TRAINING_BLACKLIST = [
-    "în curând", # "Coming soon"
+# Keywords to skip events that are not relevant
+KEYWORD_BLACKLIST = [
+    "în curând",  # "Coming soon"
     "test",
-    # Add other irrelevant event titles or keywords here
 ]
 
 async def fetch_html(url: str) -> str | None:
@@ -61,10 +60,8 @@ def extract_event_data(card: BeautifulSoup) -> dict | None:
         title_element = card.select_one(".e-c-name")
         title = title_element.get_text(strip=True) if title_element else "N/A"
 
-        # Check against training blacklist
-        if any(keyword in title.lower() for keyword in TRAINING_BLACKLIST):
-            logging.info(f"Skipping blacklisted event: {title}")
-            return None
+        # Blacklist check is now handled in the main job function
+        # to compare against a dynamically fetched list.
 
         # Extract date (day number)
         date_element = card.select_one(".e-c-time span")
@@ -158,10 +155,30 @@ def match_today(event: dict) -> bool:
 
 async def events_iticket_job() -> list[dict]: # Renamed to events_iticket_job
     """
-    Collects events for today from all specified categories on iticket.md.
+    Collects events for today from all specified categories on iticket.md,
+    excluding events found in the 'training' category.
     This function is intended to be called by APScheduler.
     """
     logging.info("Starting iTicket.md scraping job...")
+    
+    # URL for the training category to build the blacklist
+    training_url = f"{ITICKET_BASE_URL}/events/training"
+    blacklisted_event_titles = set()
+
+    # Fetch and parse the training page to get a list of event titles to exclude
+    logging.info(f"Fetching blacklist from training category: {training_url}")
+    training_html = await fetch_html(training_url)
+    if training_html:
+        soup = BeautifulSoup(training_html, 'html.parser')
+        event_cards = soup.find_all('div', class_='event-card')
+        for card in event_cards:
+            title_element = card.select_one(".e-c-name")
+            if title_element:
+                title = title_element.get_text(strip=True).lower()
+                if title:
+                    blacklisted_event_titles.add(title)
+    logging.info(f"Found {len(blacklisted_event_titles)} blacklisted event titles from the training category.")
+
     all_events = []
     today_events = []
 
@@ -176,11 +193,21 @@ async def events_iticket_job() -> list[dict]: # Renamed to events_iticket_job
             for card in event_cards:
                 event = extract_event_data(card)
                 if event:
+                    # Check against the dynamic blacklist from the training page
+                    if event['title'].lower() in blacklisted_event_titles:
+                        logging.info(f"Skipping blacklisted event (found in training category): {event['title']}")
+                        continue
+                    
+                    # Check against the static keyword blacklist
+                    if any(keyword in event['title'].lower() for keyword in KEYWORD_BLACKLIST):
+                        logging.info(f"Skipping blacklisted event (keyword match): {event['title']}")
+                        continue
+                        
                     all_events.append(event)
         else:
             logging.warning(f"Could not retrieve HTML for category: {category}")
 
-    logging.info(f"Total raw events collected: {len(all_events)}")
+    logging.info(f"Total raw events collected after blacklisting: {len(all_events)}")
 
     for event in all_events:
         if match_today(event):
