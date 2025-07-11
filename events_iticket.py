@@ -27,6 +27,12 @@ MONTH_MAPPING = {
     "sep": "sep", "oct": "oct", "noi": "nov", "dec": "dec"
 }
 
+# Month number to English abbreviation mapping
+MONTH_NUM_TO_ENG = {
+    1: "jan", 2: "feb", 3: "mar", 4: "apr", 5: "may", 6: "jun",
+    7: "jul", 8: "aug", 9: "sep", 10: "oct", 11: "nov", 12: "dec"
+}
+
 # Timezone for Moldova (EET/EEST)
 TZ = pytz.timezone('Europe/Chisinau')
 
@@ -120,7 +126,8 @@ def match_today(event: dict) -> bool:
     """Checks if the event's date and month match today's date and month."""
     now = datetime.now(TZ)
     expected_day = str(now.day)
-    expected_month = now.strftime('%b').lower().replace('.', '') # e.g., 'jul'
+    # Use the new mapping to get the expected month abbreviation
+    expected_month = MONTH_NUM_TO_ENG[now.month]
 
     actual_day_raw = event["date"]
     actual_month_ro = event["month"].lower().replace('.', '') # Remove dot from month e.g., 'iul'
@@ -159,28 +166,30 @@ async def events_iticket_job() -> list[dict]: # Renamed to events_iticket_job
     excluding events found in the 'training' category.
     This function is intended to be called by APScheduler.
     """
-    logging.info("Starting iTicket.md scraping job...")
+    # The dynamic blacklisting logic is temporarily disabled as the training page lists all events.
+    # logging.info("Starting iTicket.md scraping job...")
     
-    # URL for the training category to build the blacklist
-    training_url = f"{ITICKET_BASE_URL}/events/training"
-    blacklisted_event_titles = set()
+    # # URL for the training category to build the blacklist
+    # training_url = f"{ITICKET_BASE_URL}/events/training"
+    # blacklisted_event_titles = set()
 
-    # Fetch and parse the training page to get a list of event titles to exclude
-    logging.info(f"Fetching blacklist from training category: {training_url}")
-    training_html = await fetch_html(training_url)
-    if training_html:
-        soup = BeautifulSoup(training_html, 'html.parser')
-        event_cards = soup.find_all('div', class_='event-card')
-        for card in event_cards:
-            title_element = card.select_one(".e-c-name")
-            if title_element:
-                title = title_element.get_text(strip=True).lower()
-                if title:
-                    blacklisted_event_titles.add(title)
-    logging.info(f"Found {len(blacklisted_event_titles)} blacklisted event titles from the training category.")
+    # # Fetch and parse the training page to get a list of event titles to exclude
+    # logging.info(f"Fetching blacklist from training category: {training_url}")
+    # training_html = await fetch_html(training_url)
+    # if training_html:
+    #     soup = BeautifulSoup(training_html, 'html.parser')
+    #     event_cards = soup.find_all('div', class_='event-card')
+    #     for card in event_cards:
+    #         title_element = card.select_one(".e-c-name")
+    #         if title_element:
+    #             title = title_element.get_text(strip=True).lower()
+    #             if title:
+    #                 blacklisted_event_titles.add(title)
+    # logging.info(f"Found {len(blacklisted_event_titles)} blacklisted event titles from the training category.")
 
     all_events = []
     today_events = []
+    processed_urls = set()
 
     for category, url in CATEGORY_URLS.items():
         logging.info(f"Scraping events from category: {category} ({url})")
@@ -193,11 +202,6 @@ async def events_iticket_job() -> list[dict]: # Renamed to events_iticket_job
             for card in event_cards:
                 event = extract_event_data(card)
                 if event:
-                    # Check against the dynamic blacklist from the training page
-                    if event['title'].lower() in blacklisted_event_titles:
-                        logging.info(f"Skipping blacklisted event (found in training category): {event['title']}")
-                        continue
-                    
                     # Check against the static keyword blacklist
                     if any(keyword in event['title'].lower() for keyword in KEYWORD_BLACKLIST):
                         logging.info(f"Skipping blacklisted event (keyword match): {event['title']}")
@@ -211,7 +215,10 @@ async def events_iticket_job() -> list[dict]: # Renamed to events_iticket_job
 
     for event in all_events:
         if match_today(event):
-            today_events.append(event)
+            event_url = event.get('event_url')
+            if event_url and event_url not in processed_urls:
+                today_events.append(event)
+                processed_urls.add(event_url)
         else:
             logging.info(f"Skipping event as it does not match today: {event['title']}")
 

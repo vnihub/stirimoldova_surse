@@ -1,0 +1,43 @@
+This is a Telegram bot that scrapes news and events for Chișinău, Moldova, and posts them to a Telegram channel. Here's a breakdown of the project:
+
+### Core Functionality
+
+*   **News Aggregation:** The bot fetches news from several RSS feeds (`timpul.md`, `unimedia.info`, `api.agora.md`).
+*   **Event Scraping:** It scrapes event information from `iticket.md`, specifically for events happening "today."
+*   **Content Summarization:** It uses the OpenAI API (`gpt-4o-mini`) to summarize the news articles.
+*   **Duplicate Prevention:** It uses OpenAI embeddings and cosine similarity to avoid posting duplicate or very similar news articles. For events, it de-duplicates based on the event URL.
+*   **Telegram Posting:** It formats the news and events into Telegram messages and posts them to a configured channel.
+*   **Scheduling:** It uses `apscheduler` to run the news and event jobs at specific times.
+*   **Alerting:** It sends alerts to a private Telegram channel on startup and in case of a crash.
+
+### File Breakdown
+
+*   `run.py`: The main entry point of the application. It initializes the scheduler, sets up the jobs for news and events, and handles startup/crash alerts.
+*   `collectors.py`: This file is responsible for fetching data from the news feeds. It handles fetching, parsing, checking for recentness, and filtering out duplicates using embeddings. It also includes a function to get weather information.
+*   `events_iticket.py`: This file contains the logic for scraping the `iticket.md` website. It fetches events from various categories, filters them to find events happening on the current day, and has a blacklist to exclude irrelevant events. It also de-duplicates events to ensure each unique event is only posted once.
+*   `summariser.py`: This file interacts with the OpenAI API to summarize articles. It also has a function to check for "advertorial" content on certain news sites to skip promotional material. It uses `playwright` to render pages and check for certain keywords.
+*   `composer.py`: This file is responsible for formatting the collected news and events into the final Telegram message. It includes internationalization (i18n) for different languages, although it's currently only configured for Romanian.
+*   `config.yaml`: The main configuration file. It defines the city (Chişinău), its language, timezone, coordinates, and the list of RSS feeds.
+*   `config.py`: A simple module to load the `config.yaml` file so it can be easily accessed from other modules.
+*   `.env.example`: An example environment file showing the required environment variables: `TELEGRAM_BOT_TOKEN`, `OPENAI_API_KEY`, and the chat ID for the Telegram channel.
+*   `requirements.txt`: A list of all the Python dependencies for the project.
+*   `Dockerfile` and `Procfile`: These files are for deploying the bot, likely to a platform like Heroku or a similar service. The `Dockerfile` sets up a Python environment, installs dependencies (including those for `playwright`), and defines the command to run the bot.
+*   `alert.py`: A utility for sending alerts to a private Telegram channel.
+*   `test_post.py`: A script for manually triggering a post for a specific city, useful for testing.
+*   `utils.py`: Contains utility functions, currently just a URL shortener using `tinyurl.com`.
+
+### How it Works (Execution Flow)
+
+1.  **Startup:** The `run.py` script is executed.
+2.  **Initialization:** It loads the configuration from `config.yaml` and environment variables from `.env`.
+3.  **Scheduling:** It sets up an `AsyncIOScheduler` to run two main jobs:
+    *   `run_news_job`: This job is scheduled to run at multiple times throughout the day (8:08, 11:11, 14:14, 18:18, 21:21).
+    *   `run_events_job`: This job is scheduled to run once a day at 9:09.
+4.  **News Job (`run_news_job`):**
+    *   Calls `get_latest_items` from `collectors.py` to fetch and filter news.
+    *   Calls `get_extras` to get weather information.
+    *   Calls `compose_and_send` from `composer.py` to format and send the news to the Telegram channel.
+5.  **Events Job (`run_events_job`):**
+    *   Calls `events_iticket_job` from `events_iticket.py` to scrape today's events.
+    *   If events are found, it calls `compose_events_and_send` from `composer.py` to format and send the events to the Telegram channel.
+6.  **Alerts:** A startup alert is sent. If the application crashes, an alert with the error message is sent.
