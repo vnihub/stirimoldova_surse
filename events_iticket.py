@@ -66,9 +66,6 @@ def extract_event_data(card: BeautifulSoup) -> dict | None:
         title_element = card.select_one(".e-c-name")
         title = title_element.get_text(strip=True) if title_element else "N/A"
 
-        # Blacklist check is now handled in the main job function
-        # to compare against a dynamically fetched list.
-
         # Extract date (day number)
         date_element = card.select_one(".e-c-time span")
         date = date_element.get_text(strip=True) if date_element else "N/A"

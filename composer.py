@@ -94,7 +94,7 @@ async def compose_events_and_send(city_key: str, events: list[dict]):
     lang = str(CONFIG.get(city_key, {}).get("lang", "ro")).lower()
     
     # Header
-    header = f"🗓️ <b>Evenimente Azi în {_display_city(city_key)}</b>\n\n"
+    header = f"🗓️ <b>Evenimente Astăzi</b>\n\n"
 
     # Event lines
     event_lines = []
