@@ -15,7 +15,6 @@ CATEGORY_URLS = {
     "teatru": f"{ITICKET_BASE_URL}/events/teatru",
     "concerte": f"{ITICKET_BASE_URL}/events/concerte",
     "petreceri": f"{ITICKET_BASE_URL}/events/petreceri",
-    "copii": f"{ITICKET_BASE_URL}/events/copii",
     "stand-up": f"{ITICKET_BASE_URL}/events/stand-up",
     "alte-evenimente": f"{ITICKET_BASE_URL}/events/alte-evenimente"
 }
