@@ -12,7 +12,6 @@ from zoneinfo import ZoneInfo
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from collectors import get_latest_items, get_extras
 from composer import compose_and_send
-import threading
 
 with open("config.yaml", "r", encoding="utf-8") as f:
     CONFIG = yaml.safe_load(f)
@@ -39,10 +38,6 @@ async def run_news_job():
 
     await compose_and_send(CITY_KEY, news, extras)
 
-def heartbeat():
-    print("✅ Bot is still running…", flush=True)
-    threading.Timer(900, heartbeat).start()  # every 15 minutes
-
 def main():
     try:
         loop = asyncio.new_event_loop()
@@ -60,9 +55,14 @@ def main():
                 timezone=tz,
             )
 
+        sched.add_job(
+            lambda: print("✅ Bot is still running…", flush=True),
+            "interval",
+            minutes=15,
+        )
+
         sched.start()
         print("Chişinău-bot scheduler started. Loop running forever …", flush=True)
-        heartbeat()
 
         loop.run_forever()
 
