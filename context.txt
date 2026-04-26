@@ -15,7 +15,6 @@ This is a Telegram bot that scrapes news for Chișinău, Moldova, and posts them
 *   `summariser.py`: This file interacts with the OpenAI API to summarize articles. It also has a function to check for "advertorial" content on certain news sites to skip promotional material. It uses `playwright` to render pages and check for certain keywords.
 *   `composer.py`: This file is responsible for formatting the collected news into the final Telegram message. It includes internationalization (i18n) for different languages, although it's currently only configured for Romanian.
 *   `config.yaml`: The main configuration file. It defines the city (Chișinău), its language, timezone, coordinates, and the list of RSS feeds.
-*   `config.py`: A simple module to load the `config.yaml` file so it can be easily accessed from other modules.
 *   `.env.example`: An example environment file showing the required environment variables: `TELEGRAM_BOT_TOKEN`, `OPENAI_API_KEY`, and the chat ID for the Telegram channel.
 *   `requirements.txt`: A list of all the Python dependencies for the project.
 *   `Dockerfile` and `Procfile`: These files are for deploying the bot, likely to a platform like Heroku or a similar service. The `Dockerfile` sets up a Python environment, installs dependencies (including those for `playwright`), and defines the command to run the bot.

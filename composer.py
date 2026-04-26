@@ -1,9 +1,9 @@
 # composer.py – build the Telegram post and send it
-import os
-from dotenv import load_dotenv
+import os, yaml
 from telegram import Bot
 
-load_dotenv()
+with open("config.yaml", "r", encoding="utf-8") as _f:
+    _CONFIG = yaml.safe_load(_f)
 
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 if not BOT_TOKEN:
@@ -41,8 +41,7 @@ def _chat_id(city_key: str) -> str | None:
     return None
 
 def _display_city(city_key: str) -> str:
-    from config import CONFIG
-    cfg = CONFIG.get(city_key, {})
+    cfg = _CONFIG.get(city_key, {})
     return cfg.get("city_local") or cfg.get("city") or city_key.replace("_", " ").title()
 
 # ------------------------------------------------ main API
@@ -58,8 +57,7 @@ async def compose_and_send(city_key: str,
     if not chat:
         return  # channel not configured
 
-    from config import CONFIG
-    lang  = str(CONFIG.get(city_key, {}).get("lang", "en")).lower()
+    lang  = str(_CONFIG.get(city_key, {}).get("lang", "en")).lower()
     label = LOCAL_HEADERS.get(lang, "Now")
 
     # CTA link
