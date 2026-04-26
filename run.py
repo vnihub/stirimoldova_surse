@@ -11,9 +11,7 @@ import asyncio, yaml
 from zoneinfo import ZoneInfo
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from collectors import get_latest_items, get_extras
-from composer import compose_and_send, compose_events_and_send
-from alert import send_alert  # 🚨 alert system import
-from events_iticket import events_iticket_job  # ✅ new import
+from composer import compose_and_send
 import threading
 
 with open("config.yaml", "r", encoding="utf-8") as f:
@@ -41,12 +39,6 @@ async def run_news_job():
 
     await compose_and_send(CITY_KEY, news, extras)
 
-async def run_events_job():
-    """Runs the iTicket event scraper and posts the results."""
-    events = await events_iticket_job()
-    if events:
-        await compose_events_and_send(CITY_KEY, events)
-
 def heartbeat():
     print("✅ Bot is still running…", flush=True)
     threading.Timer(900, heartbeat).start()  # every 15 minutes
@@ -68,27 +60,14 @@ def main():
                 timezone=tz,
             )
 
-        # ✅ schedule iTicket events post at 09:09
-        sched.add_job(
-            run_events_job,
-            "cron",
-            hour=9,
-            minute=9,
-            timezone=tz,
-)
-
         sched.start()
         print("Chişinău-bot scheduler started. Loop running forever …", flush=True)
         heartbeat()
 
-        # ✅ Notify successful start
-        loop.create_task(send_alert("✅ Chişinău bot started successfully."))
-
         loop.run_forever()
 
     except Exception as e:
-        # 🚨 Notify on crash
-        loop.run_until_complete(send_alert(f"❌ Chişinău bot crashed:\n{str(e)}"))
+        print(f"❌ Chişinău bot crashed: {e}", flush=True)
         raise
 
 if __name__ == "__main__":
