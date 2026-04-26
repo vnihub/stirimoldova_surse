@@ -1,4 +1,4 @@
-# run.py  – Chişinău-only bot with Telegram crash/start alerts
+# run.py  – Chişinău-only news bot
 
 import sys
 sys.stdout.reconfigure(line_buffering=True)

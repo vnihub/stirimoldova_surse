@@ -77,16 +77,3 @@ async def summarise_article(entry, lang: str) -> str | None:
         short_link = link
 
     return f"{summary} → {short_link}"
-
-async def get_embedding(text: str) -> list[float]:
-    """Return the OpenAI embedding vector for a given string."""
-    try:
-        resp = await asyncio.to_thread(
-            lambda: client.embeddings.create(
-                model="text-embedding-3-small",
-                input=text,
-            )
-        )
-        return resp.data[0].embedding
-    except Exception:
-        return []

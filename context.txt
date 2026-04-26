@@ -21,8 +21,6 @@ This is a Telegram bot that scrapes news for Chișinău, Moldova, and posts them
 *   `Dockerfile` and `Procfile`: These files are for deploying the bot, likely to a platform like Heroku or a similar service. The `Dockerfile` sets up a Python environment, installs dependencies (including those for `playwright`), and defines the command to run the bot.
 *   `utils.py`: Contains utility functions, currently just a URL shortener using `tinyurl.com`.
 *   `events_iticket.py`: (Legacy) Event scraping from `iticket.md`, not currently scheduled by the main bot.
-*   `alert.py`: (Legacy) Utility for sending alerts to a private Telegram channel, not currently used.
-*   `test_post.py`: (Legacy) Script for manually triggering a post, not currently used.
 
 ### How it Works (Execution Flow)
 
